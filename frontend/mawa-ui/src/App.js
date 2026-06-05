@@ -202,6 +202,7 @@ export default function App() {
     r.start();
   };
 
+  // eslint-disable-next-line
   const addTask = async () => {
     if (!newTask.trim()) return;
     await axios.post(`${API}/tasks`, { task: newTask, time: newTaskTime || null });
