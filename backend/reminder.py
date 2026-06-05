@@ -6,7 +6,10 @@ from database import add_reminder, get_reminders
 import sqlite3
 import os
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'nova.db')
+if os.environ.get('RENDER'):
+    DB_PATH = '/tmp/nova.db'
+else:
+    DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'nova.db')
 def parse_reminder_time(time_str):
     """Convert time string to datetime object"""
     now = datetime.now()

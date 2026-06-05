@@ -3,7 +3,10 @@ from datetime import datetime, timedelta
 import sqlite3
 import re
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'nova.db')
+if os.environ.get('RENDER'):
+    DB_PATH = '/tmp/nova.db'
+else:
+    DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'nova.db')
 
 def init_routine_db():
     conn = sqlite3.connect(DB_PATH)
