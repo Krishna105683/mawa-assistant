@@ -364,7 +364,7 @@ export default function App() {
       {/* Sidebar */}
       <div style={s.sidebar}>
         <div style={s.logo}>
-        <img src="/mawa-logo.png" alt="Mawa Logo" style={{ width: "140px", height: "140px", objectFit: "contain" }} />
+        <img src="/Mawa-logo.png" alt="Mawa Logo" style={{ width: "140px", height: "140px", objectFit: "contain" }} />
         </div>
         <div style={{ flex: 1, padding: "10px 0" }}>
           {navItems.map(item => (
