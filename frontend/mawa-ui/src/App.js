@@ -363,9 +363,13 @@ export default function App() {
     <div style={s.app}>
       {/* Sidebar */}
       <div style={s.sidebar}>
-        <div style={s.logo}>
-        <img src="/Mawa-logo.png" alt="Mawa Logo" style={{ width: "140px", height: "140px", objectFit: "contain" }} />
-        </div>
+       <div style={s.logo}>
+          <div style={{ textAlign: "center" }}>
+            <img src="/Mawa-logo.png" alt="Mawa Logo" style={{ width: "60px", height: "60px", objectFit: "contain", borderRadius: "12px", mixBlendMode: "screen" }} />
+            <div style={s.logoText}>MAWA</div>
+            <div style={{ fontSize: "10px", color: c.sub, marginTop: "2px" }}>Your Personal AI Assistant</div>
+          </div>
+        </div> 
         <div style={{ flex: 1, padding: "10px 0" }}>
           {navItems.map(item => (
             <div key={item.id} style={s.nav(tab === item.id)} onClick={() => setTab(item.id)}>
