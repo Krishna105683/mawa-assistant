@@ -48,31 +48,23 @@ def get_weather():
 
 def get_news():
     try:
-        # Install feedparser if not installed
-        try:
-            import feedparser
-        except ImportError:
-            import subprocess
-            import sys
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "feedparser"])
-            import feedparser
-        
-        # Times of India RSS feed
+        import feedparser
         feeds = [
             "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
             "https://www.thehindu.com/feeder/default.rss",
-            "https://indianexpress.com/feed/"
+            "https://indianexpress.com/feed/",
+            "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml"
         ]
-        
         for feed_url in feeds:
-            feed = feedparser.parse(feed_url)
-            if feed.entries:
-                news_text = "Here are today's top headlines Krishna:\n"
-                for i, entry in enumerate(feed.entries[:5], 1):
-                    news_text += f"\n{i}. {entry.title}"
-                return news_text
-        
-        return "Sorry Krishna, couldn't fetch news right now. Try again later!"
-    
+            try:
+                feed = feedparser.parse(feed_url)
+                if feed.entries:
+                    news_text = "Here are today's top headlines Krishna:\n"
+                    for i, entry in enumerate(feed.entries[:5], 1):
+                        news_text += f"\n{i}. {entry.title}"
+                    return news_text
+            except:
+                continue
+        return "Sorry Krishna, couldn't fetch news right now!"
     except Exception as e:
-        return f"Sorry Krishna, I couldn't fetch the news. Error: {str(e)}"
+        return f"News error: {str(e)}"
