@@ -3,14 +3,13 @@ import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL || "http://127.0.0.1:5000/api";
 
-// ── Voice Setup ──────────────────────────────────────
+// ── Voice ─────────────────────────────────────────────
 const speakText = (text) => {
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = 1.0;
   utterance.pitch = 1.6;
   utterance.volume = 1;
-
   const setVoice = () => {
     const voices = window.speechSynthesis.getVoices();
     const preferred = [
@@ -19,7 +18,6 @@ const speakText = (text) => {
       v => v.name.includes("Zira"),
       v => v.lang === "hi-IN",
       v => v.name.toLowerCase().includes("female"),
-      v => v.lang.startsWith("en") && v.name.toLowerCase().includes("female"),
     ];
     for (const fn of preferred) {
       const found = voices.find(fn);
@@ -27,28 +25,30 @@ const speakText = (text) => {
     }
     window.speechSynthesis.speak(utterance);
   };
-
   if (window.speechSynthesis.getVoices().length === 0) {
     window.speechSynthesis.onvoiceschanged = setVoice;
-  } else {
-    setVoice();
-  }
+  } else { setVoice(); }
 };
-  const TaskInput = ({ onAdd }) => {
+
+// ── Task Input (outside App to prevent re-render) ─────
+const TaskInput = ({ onAdd, dark }) => {
   const [task, setTask] = useState("");
   const [time, setTime] = useState("");
+  const border = dark ? "#1e1e3f" : "#e0e0ff";
+  const bg = dark ? "#080814" : "#f5f5ff";
+  const text = dark ? "#e8e8ff" : "#12122a";
+  const accent = "#7c5cfc";
 
   const handleAdd = () => {
     if (!task.trim()) return;
     onAdd(task, time);
-    setTask("");
-    setTime("");
+    setTask(""); setTime("");
   };
 
   return (
-    <div style={{ display: "flex", gap: "8px" }}>
+    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
       <input
-        style={{ flex: 2, padding: "9px 14px", borderRadius: "9px", border: "1px solid #1e1e3f", background: "#080814", color: "#e8e8ff", fontSize: "13px", outline: "none" }}
+        style={{ flex: "2 1 140px", padding: "9px 14px", borderRadius: "9px", border: `1px solid ${border}`, background: bg, color: text, fontSize: "13px", outline: "none", minWidth: "120px" }}
         placeholder="Task name..."
         value={task}
         onChange={e => setTask(e.target.value)}
@@ -57,20 +57,21 @@ const speakText = (text) => {
         spellCheck="false"
       />
       <input
-        style={{ flex: 1, padding: "9px 14px", borderRadius: "9px", border: "1px solid #1e1e3f", background: "#080814", color: "#e8e8ff", fontSize: "13px", outline: "none" }}
+        style={{ flex: "1 1 100px", padding: "9px 14px", borderRadius: "9px", border: `1px solid ${border}`, background: bg, color: text, fontSize: "13px", outline: "none", minWidth: "90px" }}
         placeholder="8:00 AM"
         value={time}
         onChange={e => setTime(e.target.value)}
         autoComplete="off"
       />
       <button
-        style={{ padding: "7px 14px", borderRadius: "8px", background: "#7c5cfc", color: "white", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}
+        style={{ padding: "9px 18px", borderRadius: "9px", background: accent, color: "white", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: "600", whiteSpace: "nowrap" }}
         onClick={handleAdd}
       >Add</button>
     </div>
   );
 };
-// ── Main App ─────────────────────────────────────────
+
+// ── Main App ──────────────────────────────────────────
 export default function App() {
   const [dark, setDark] = useState(true);
   const [tab, setTab] = useState("home");
@@ -87,13 +88,17 @@ export default function App() {
   const [weather, setWeather] = useState("");
   const [briefing, setBriefing] = useState("");
   const [news, setNews] = useState("");
-  const [newTask, setNewTask] = useState("");
-  const [newTaskTime, setNewTaskTime] = useState("");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const bottomRef = useRef(null);
-  const inputRef = useRef(null);
   const recogRef = useRef(null);
 
-  // fetch data
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const fetchAll = useCallback(async () => {
     try {
       const [t, r, h, ro, w, br] = await Promise.all([
@@ -116,69 +121,41 @@ export default function App() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // send message
   const sendMessage = useCallback(async (text) => {
     if (!text.trim()) return;
     setMessages(prev => [...prev, { from: "user", text }]);
     setChatInput("");
     setLoading(true);
     try {
-  // Detect Hindi words
-      const hindiWords = ["namaste", "namaskar", "kya", "hai", "mera", "tera",
-        "aaj", "kal", "karo", "batao", "dikhao", "accha", "haan", "nahi",
-        "mausam", "abhi", "bahut", "aur", "alvida", "madad", "chahiye",
-        "hain", "gaya", "mein", "kaisa", "kaise", "subah", "shaam"];
+      const hindiWords = ["namaste","namaskar","kya","hai","mera","tera","aaj","kal","karo","batao","dikhao","accha","haan","nahi","mausam","abhi","bahut","aur","alvida","madad","chahiye","hain","gaya","mein","kaisa","kaise","subah","shaam"];
       const words = text.toLowerCase().split(" ");
       const hindiCount = words.filter(w => hindiWords.includes(w)).length;
       const hindiChars = [...text].filter(c => c >= '\u0900' && c <= '\u097F').length;
       const detectedLang = (hindiCount >= 1 || hindiChars > 0) ? "hindi" : "english";
 
-      const res = await axios.post(`${API}/chat`, { message: text, language: detectedLang });  
-      let reply = "";
+      const res = await axios.post(`${API}/chat`, { message: text, language: detectedLang });
       const responseData = res.data.response;
-      
+      let reply = "";
+
       if (typeof responseData === "string") {
         reply = responseData;
       } else if (responseData?.type === "tasks") {
         const isHindi = responseData.language === "hindi";
-        if (responseData.data.length === 0) {
-          reply = isHindi ? "Krishna, koi pending task nahi hai!" : "You have no pending tasks Krishna!";
-        } else {
-          reply = isHindi ? "Krishna, aapke tasks:\n" : "Here are your tasks Krishna:\n";
-          responseData.data.forEach(t => {
-            reply += `• ${t.task}${t.time ? ` at ${t.time}` : ""}\n`;
-          });
-        }
+        reply = isHindi ? "Krishna, aapke tasks:\n" : "Here are your tasks Krishna:\n";
+        responseData.data.forEach(t => { reply += `• ${t.task}${t.time ? ` at ${t.time}` : ""}\n`; });
       } else if (responseData?.type === "reminders") {
-        if (responseData.data.length === 0) {
-          reply = "You have no reminders Krishna!";
-        } else {
-          reply = "Here are your reminders Krishna:\n";
-          responseData.data.forEach(r => {
-            reply += `• ${r.title} at ${r.time}\n`;
-          });
-        }
+        reply = "Here are your reminders Krishna:\n";
+        responseData.data.forEach(r => { reply += `• ${r.title} at ${r.time}\n`; });
       } else if (responseData?.type === "habits") {
-        if (responseData.data.length === 0) {
-          reply = "No habits tracked yet Krishna!";
-        } else {
-          reply = "Here are your habits Krishna:\n";
-          responseData.data.forEach(h => {
-            reply += `• ${h.done ? "✅" : "⬜"} ${h.name}\n`;
-          });
-        }
+        reply = "Here are your habits Krishna:\n";
+        responseData.data.forEach(h => { reply += `• ${h.done ? "✅" : "⬜"} ${h.name}\n`; });
       } else if (responseData?.type === "routine") {
-        if (responseData.data.length === 0) {
-          reply = "No routine set yet Krishna!";
-        } else {
-          reply = "Here is your daily routine Krishna:\n";
-          responseData.data.forEach(r => {
-            reply += `• ${r.time} — ${r.activity}\n`;
-          });
-        }
+        reply = "Here is your daily routine Krishna:\n";
+        responseData.data.forEach(r => { reply += `• ${r.time} — ${r.activity}\n`; });
       } else {
         reply = JSON.stringify(responseData);
       }
+
       setMessages(prev => [...prev, { from: "mawa", text: reply }]);
       speakText(reply);
       fetchAll();
@@ -188,7 +165,6 @@ export default function App() {
     setLoading(false);
   }, [fetchAll]);
 
-  // voice
   const toggleListen = () => {
     if (listening) { recogRef.current?.stop(); return; }
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -202,19 +178,11 @@ export default function App() {
     r.start();
   };
 
-  // eslint-disable-next-line
-  const addTask = async () => {
-    if (!newTask.trim()) return;
-    await axios.post(`${API}/tasks`, { task: newTask, time: newTaskTime || null });
-    setNewTask(""); setNewTaskTime(""); fetchAll();
-  };
-
   const fmtTime = (t) => {
     try { return new Date(t).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }); }
     catch { return t; }
   };
 
-  // ── Theme ─────────────────────────────────────────
   const c = {
     bg: dark ? "#080814" : "#f5f5ff",
     sidebar: dark ? "#0d0d1f" : "#ffffff",
@@ -225,30 +193,39 @@ export default function App() {
     accent: "#7c5cfc",
     pink: "#fc5c9c",
     green: "#22d98a",
-    yellow: "#fcd34d",
   };
 
   const s = {
-    app: { display: "flex", height: "100vh", background: c.bg, color: c.text, fontFamily: "'Segoe UI', Tahoma, sans-serif", overflow: "hidden" },
-    sidebar: { width: "200px", minWidth: "200px", background: c.sidebar, borderRight: `1px solid ${c.border}`, display: "flex", flexDirection: "column" },
-    logo: { padding: "24px 20px 20px", borderBottom: `1px solid ${c.border}` },
-    logoText: { fontSize: "20px", fontWeight: "800", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
-    nav: (active) => ({ display: "flex", alignItems: "center", gap: "10px", padding: "11px 18px", margin: "2px 8px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: active ? "600" : "400", background: active ? `${c.accent}20` : "transparent", color: active ? c.accent : c.sub, transition: "all 0.15s" }),
+    app: { display: "flex", height: "100vh", background: c.bg, color: c.text, fontFamily: "'Segoe UI', Tahoma, sans-serif", overflow: "hidden", flexDirection: isMobile ? "column" : "row" },
+    sidebar: { width: "210px", minWidth: "210px", background: c.sidebar, borderRight: `1px solid ${c.border}`, display: "flex", flexDirection: "column" },
+    mobileSidebar: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: c.sidebar, zIndex: 1000, display: "flex", flexDirection: "column", padding: "20px" },
+    bottomNav: { display: "flex", position: "fixed", bottom: 0, left: 0, right: 0, background: c.sidebar, borderTop: `1px solid ${c.border}`, padding: "8px 0 12px", justifyContent: "space-around", alignItems: "center", zIndex: 100 },
+    bottomNavItem: (active) => ({ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", cursor: "pointer", padding: "4px 8px", borderRadius: "10px", background: active ? `${c.accent}20` : "transparent", color: active ? c.accent : c.sub }),
     main: { flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" },
-    topbar: { padding: "14px 24px", borderBottom: `1px solid ${c.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", background: c.sidebar },
-    scroll: { flex: 1, overflowY: "auto", padding: "20px 24px" },
-    card: { background: c.card, border: `1px solid ${c.border}`, borderRadius: "14px", padding: "18px", marginBottom: "16px" },
-    cardTitle: { fontSize: "15px", fontWeight: "600", color: c.accent, marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" },
+    topbar: { padding: isMobile ? "12px 16px" : "14px 24px", borderBottom: `1px solid ${c.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", background: c.sidebar },
+    scroll: { flex: 1, overflowY: "auto", padding: isMobile ? "12px 14px 80px" : "20px 24px" },
+    card: { background: c.card, border: `1px solid ${c.border}`, borderRadius: "14px", padding: isMobile ? "14px" : "18px", marginBottom: "14px" },
+    cardTitle: { fontSize: "15px", fontWeight: "600", color: c.accent, marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" },
     row: { display: "flex", alignItems: "center", gap: "10px", padding: "9px 0", borderBottom: `1px solid ${c.border}`, fontSize: "14px" },
     btn: (bg) => ({ padding: "7px 14px", borderRadius: "8px", background: bg, color: "white", border: "none", cursor: "pointer", fontSize: "12px", fontWeight: "600" }),
-    input: { padding: "9px 14px", borderRadius: "9px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "13px", outline: "none", width: "100%" },
-    grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" },
+    inp: { padding: "9px 14px", borderRadius: "9px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "13px", outline: "none", width: "100%" },
+    grid2: { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "14px" },
+    logoText: { fontSize: "18px", fontWeight: "800", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
+    nav: (active) => ({ display: "flex", alignItems: "center", gap: "10px", padding: "11px 18px", margin: "2px 8px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: active ? "600" : "400", background: active ? `${c.accent}20` : "transparent", color: active ? c.accent : c.sub, transition: "all 0.15s" }),
   };
 
-  // ── Views ─────────────────────────────────────────
+  const navItems = [
+    { id: "home", emoji: "🏠", label: "Home" },
+    { id: "chat", emoji: "💬", label: "Chat" },
+    { id: "tasks", emoji: "📋", label: "Tasks" },
+    { id: "habits", emoji: "🌟", label: "Habits" },
+    { id: "routine", emoji: "🔄", label: "Routine" },
+    { id: "news", emoji: "📰", label: "News" },
+  ];
+
   const HomeView = () => (
     <div>
-      <div style={{ background: "linear-gradient(135deg, #1a0a4a, #2a0a5a)", borderRadius: "14px", padding: "20px", marginBottom: "16px", color: "white" }}>
+      <div style={{ background: "linear-gradient(135deg, #1a0a4a, #2a0a5a)", borderRadius: "14px", padding: "16px", marginBottom: "14px", color: "white" }}>
         <div style={{ fontSize: "12px", opacity: 0.7, marginBottom: "6px" }}>📍 Hyderabad, India</div>
         <div style={{ fontSize: "13px", lineHeight: "1.9" }}>{weather}</div>
       </div>
@@ -288,7 +265,7 @@ export default function App() {
     <div>
       <div style={s.card}>
         <div style={s.cardTitle}>➕ Add Task</div>
-        <TaskInput onAdd={async (task, time) => {
+        <TaskInput dark={dark} onAdd={async (task, time) => {
           await axios.post(`${API}/tasks`, { task, time: time || null });
           fetchAll();
         }} />
@@ -302,8 +279,8 @@ export default function App() {
               <div style={{ fontSize: "14px" }}>{t.task}</div>
               {t.time && <div style={{ fontSize: "11px", color: c.sub }}>⏰ {t.time}</div>}
             </div>
-            <button style={s.btn(c.green)} onClick={() => { axios.post(`${API}/tasks/${t.id}/complete`).then(fetchAll); }}>✓</button>
-            <button style={{ ...s.btn("#ef4444"), marginLeft: "6px" }} onClick={() => { axios.delete(`${API}/tasks/${t.id}`).then(fetchAll); }}>✕</button>
+            <button style={s.btn(c.green)} onClick={() => axios.post(`${API}/tasks/${t.id}/complete`).then(fetchAll)}>✓</button>
+            <button style={{ ...s.btn("#ef4444"), marginLeft: "6px" }} onClick={() => axios.delete(`${API}/tasks/${t.id}`).then(fetchAll)}>✕</button>
           </div>
         ))}
         {!tasks.length && <div style={{ fontSize: "13px", color: c.sub }}>No pending tasks! 🎉</div>}
@@ -319,7 +296,7 @@ export default function App() {
           <span style={{ fontSize: "20px" }}>{h.done ? "✅" : "⬜"}</span>
           <span style={{ flex: 1, fontSize: "14px" }}>{h.name}</span>
           {!h.done
-            ? <button style={s.btn(c.accent)} onClick={() => { axios.post(`${API}/habits/${h.id}/complete`).then(fetchAll); }}>Complete</button>
+            ? <button style={s.btn(c.accent)} onClick={() => axios.post(`${API}/habits/${h.id}/complete`).then(fetchAll)}>Complete</button>
             : <span style={{ fontSize: "12px", color: c.green, fontWeight: "600" }}>Done! 🎉</span>}
         </div>
       ))}
@@ -350,81 +327,90 @@ export default function App() {
 
   const tabViews = { home: <HomeView />, tasks: <TasksView />, habits: <HabitsView />, routine: <RoutineView />, news: <NewsView /> };
 
-  const navItems = [
-    { id: "home", emoji: "🏠", label: "Home" },
-    { id: "chat", emoji: "💬", label: "Chat" },
-    { id: "tasks", emoji: "📋", label: "Tasks" },
-    { id: "habits", emoji: "🌟", label: "Habits" },
-    { id: "routine", emoji: "🔄", label: "Routine" },
-    { id: "news", emoji: "📰", label: "News" },
-  ];
+  const SidebarContent = () => (
+    <>
+      <div style={{ padding: "20px 20px 16px", borderBottom: `1px solid ${c.border}`, textAlign: "center" }}>
+        <img src="/Mawa-logo.png" alt="Mawa Logo" style={{ width: "60px", height: "60px", objectFit: "contain", borderRadius: "12px", mixBlendMode: "screen" }} />
+        <div style={s.logoText}>MAWA</div>
+        <div style={{ fontSize: "10px", color: c.sub, marginTop: "2px" }}>Your Personal AI Assistant</div>
+      </div>
+      <div style={{ flex: 1, padding: "10px 0", overflowY: "auto" }}>
+        {navItems.map(item => (
+          <div key={item.id} style={s.nav(tab === item.id)} onClick={() => { setTab(item.id); setSidebarOpen(false); }}>
+            <span>{item.emoji}</span> {item.label}
+          </div>
+        ))}
+      </div>
+      <div style={{ padding: "16px 18px", borderTop: `1px solid ${c.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: "12px", color: c.sub }}>{dark ? "🌙 Dark" : "☀️ Light"}</span>
+        <div onClick={() => setDark(!dark)} style={{ width: "38px", height: "20px", borderRadius: "10px", background: dark ? c.accent : "#ccc", cursor: "pointer", position: "relative", transition: "background 0.2s" }}>
+          <div style={{ width: "14px", height: "14px", borderRadius: "50%", background: "white", position: "absolute", top: "3px", left: dark ? "21px" : "3px", transition: "left 0.2s" }} />
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <div style={s.app}>
-      {/* Sidebar */}
-      <div style={s.sidebar}>
-       <div style={s.logo}>
-          <div style={{ textAlign: "center" }}>
-            <img src="/Mawa-logo.png" alt="Mawa Logo" style={{ width: "60px", height: "60px", objectFit: "contain", borderRadius: "12px", mixBlendMode: "screen" }} />
-            <div style={s.logoText}>MAWA</div>
-            <div style={{ fontSize: "10px", color: c.sub, marginTop: "2px" }}>Your Personal AI Assistant</div>
-          </div>
-        </div> 
-        <div style={{ flex: 1, padding: "10px 0" }}>
-          {navItems.map(item => (
-            <div key={item.id} style={s.nav(tab === item.id)} onClick={() => setTab(item.id)}>
-              <span>{item.emoji}</span> {item.label}
-            </div>
-          ))}
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <div style={s.sidebar}>
+          <SidebarContent />
         </div>
-        <div style={{ padding: "16px 18px", borderTop: `1px solid ${c.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: "12px", color: c.sub }}>{dark ? "🌙 Dark" : "☀️ Light"}</span>
-          <div onClick={() => setDark(!dark)} style={{ width: "38px", height: "20px", borderRadius: "10px", background: dark ? c.accent : "#ccc", cursor: "pointer", position: "relative", transition: "background 0.2s" }}>
-            <div style={{ width: "14px", height: "14px", borderRadius: "50%", background: "white", position: "absolute", top: "3px", left: dark ? "21px" : "3px", transition: "left 0.2s" }} />
-          </div>
+      )}
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && sidebarOpen && (
+        <div style={s.mobileSidebar}>
+          <button onClick={() => setSidebarOpen(false)} style={{ alignSelf: "flex-end", background: "transparent", border: "none", color: c.text, fontSize: "24px", cursor: "pointer", marginBottom: "10px" }}>✕</button>
+          <SidebarContent />
         </div>
-      </div>
+      )}
 
       {/* Main */}
       <div style={s.main}>
-        {/* Topbar */}
         <div style={s.topbar}>
-          <div>
-            <div style={{ fontWeight: "700", fontSize: "15px" }}>{navItems.find(n => n.id === tab)?.emoji} {tab.charAt(0).toUpperCase() + tab.slice(1)}</div>
-            <div style={{ fontSize: "11px", color: c.sub }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {isMobile && (
+              <button onClick={() => setSidebarOpen(true)} style={{ background: "transparent", border: "none", color: c.text, fontSize: "22px", cursor: "pointer" }}>☰</button>
+            )}
+            <div>
+              <div style={{ fontWeight: "700", fontSize: isMobile ? "14px" : "15px" }}>
+                {navItems.find(n => n.id === tab)?.emoji} {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </div>
+              <div style={{ fontSize: "11px", color: c.sub }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", month: "long", day: "numeric" })}</div>
+            </div>
           </div>
-          <button onClick={fetchAll} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄 Refresh</button>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            {isMobile && (
+              <button onClick={() => setDark(!dark)} style={{ background: "transparent", border: `1px solid ${c.border}`, color: c.sub, borderRadius: "8px", padding: "6px 10px", cursor: "pointer", fontSize: "14px" }}>
+                {dark ? "☀️" : "🌙"}
+              </button>
+            )}
+            <button onClick={fetchAll} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
+          </div>
         </div>
 
-        {/* Content */}
         {tab === "chat" ? (
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {/* Messages */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? "12px 14px" : "20px 24px", display: "flex", flexDirection: "column", gap: "12px", paddingBottom: isMobile ? "80px" : "20px" }}>
               {messages.map((m, i) => (
-                <div key={i} style={{ alignSelf: m.from === "user" ? "flex-end" : "flex-start", maxWidth: "68%" }}>
+                <div key={i} style={{ alignSelf: m.from === "user" ? "flex-end" : "flex-start", maxWidth: isMobile ? "85%" : "68%" }}>
                   {m.from === "mawa" && <div style={{ fontSize: "11px", color: c.accent, fontWeight: "700", marginBottom: "4px" }}>✨ Mawa</div>}
-                  <div style={{
-                    padding: "11px 16px", borderRadius: m.from === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                    background: m.from === "user" ? `linear-gradient(135deg, ${c.accent}, ${c.pink})` : c.card,
-                    border: m.from === "mawa" ? `1px solid ${c.border}` : "none",
-                    fontSize: "14px", lineHeight: "1.6", color: m.from === "user" ? "white" : c.text
-                  }}>{m.text}</div>
+                  <div style={{ padding: "11px 16px", borderRadius: m.from === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", background: m.from === "user" ? `linear-gradient(135deg, ${c.accent}, ${c.pink})` : c.card, border: m.from === "mawa" ? `1px solid ${c.border}` : "none", fontSize: isMobile ? "13px" : "14px", lineHeight: "1.6", color: m.from === "user" ? "white" : c.text, whiteSpace: "pre-wrap" }}>{m.text}</div>
                 </div>
               ))}
               {loading && (
-                <div style={{ alignSelf: "flex-start", maxWidth: "68%" }}>
+                <div style={{ alignSelf: "flex-start" }}>
                   <div style={{ fontSize: "11px", color: c.accent, fontWeight: "700", marginBottom: "4px" }}>✨ Mawa</div>
                   <div style={{ padding: "11px 16px", borderRadius: "18px 18px 18px 4px", background: c.card, border: `1px solid ${c.border}`, fontSize: "14px", color: c.sub }}>Thinking... 💭</div>
                 </div>
               )}
               <div ref={bottomRef} />
             </div>
-            {/* Input - FIXED outside component */}
-            <div style={{ padding: "14px 24px", borderTop: `1px solid ${c.border}`, display: "flex", gap: "10px", alignItems: "center", background: c.sidebar }}>
+            <div style={{ padding: isMobile ? "10px 14px 70px" : "14px 24px", borderTop: `1px solid ${c.border}`, display: "flex", gap: "8px", alignItems: "center", background: c.sidebar }}>
               <input
-                ref={inputRef}
-                style={{ flex: 1, padding: "12px 18px", borderRadius: "25px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "14px", outline: "none" }}
+                style={{ flex: 1, padding: "12px 18px", borderRadius: "25px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: isMobile ? "13px" : "14px", outline: "none" }}
                 value={chatInput}
                 onChange={e => setChatInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput); } }}
@@ -432,24 +418,32 @@ export default function App() {
                 autoComplete="off"
                 spellCheck="false"
               />
-              <button
-                onClick={toggleListen}
-                style={{ width: "44px", height: "44px", borderRadius: "50%", background: listening ? c.pink : c.accent, color: "white", border: "none", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}
-              >
+              <button onClick={toggleListen} style={{ width: "44px", height: "44px", borderRadius: "50%", background: listening ? c.pink : c.accent, color: "white", border: "none", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 {listening ? "⏹" : "🎤"}
               </button>
-              <button
-                onClick={() => sendMessage(chatInput)}
-                style={{ padding: "12px 22px", borderRadius: "25px", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "14px" }}
-              >
+              <button onClick={() => sendMessage(chatInput)} style={{ padding: "12px 20px", borderRadius: "25px", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: isMobile ? "13px" : "14px", flexShrink: 0 }}>
                 Send
               </button>
             </div>
           </div>
         ) : (
-          <div style={s.scroll}>{tabViews[tab]}</div>
+          <div style={{ ...s.scroll, paddingBottom: isMobile ? "80px" : "20px" }}>
+            {tabViews[tab]}
+          </div>
         )}
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <div style={s.bottomNav}>
+          {navItems.map(item => (
+            <div key={item.id} style={s.bottomNavItem(tab === item.id)} onClick={() => setTab(item.id)}>
+              <span style={{ fontSize: "22px" }}>{item.emoji}</span>
+              <span style={{ fontSize: "10px", fontWeight: tab === item.id ? "600" : "400" }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
