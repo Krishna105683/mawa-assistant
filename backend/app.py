@@ -287,6 +287,9 @@ def news():
 @app.route('/api/briefing', methods=['GET'])
 def briefing():
     return jsonify({"briefing": get_morning_briefing(get_weather, get_tasks, get_reminders)})
-
+# Keep alive ping
+@app.route('/ping', methods=['GET'])
+def ping():
+    return jsonify({"status": "alive", "message": "Mawa is awake!"})
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

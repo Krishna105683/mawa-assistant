@@ -119,6 +119,13 @@ export default function App() {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+  // Keep Render server awake
+  useEffect(() => {
+    const keepAlive = setInterval(() => {
+      axios.get(`${API.replace('/api', '')}/ping`).catch(() => {});
+    }, 10 * 60 * 1000); // ping every 10 minutes
+    return () => clearInterval(keepAlive);
+  }, []);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const sendMessage = useCallback(async (text) => {
