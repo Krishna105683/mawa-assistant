@@ -14,7 +14,11 @@ import re
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins="*", allow_headers=["Content-Type"], methods=["GET", "POST", "DELETE", "OPTIONS"])
+CORS(app, 
+     origins=["https://mawa-assistant.vercel.app", "http://localhost:3000", "*"],
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "DELETE", "OPTIONS"],
+     supports_credentials=True)
 
 init_db()
 init_routine_db()
