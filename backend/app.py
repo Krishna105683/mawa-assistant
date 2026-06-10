@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from datetime import datetime
+import pytz
 import os
 from dotenv import load_dotenv
 from groq import Groq
@@ -84,8 +85,8 @@ def chat_with_mawa(user_message, language="english"):
 
 def handle_message(user_message, language="english"):
     intent = detect_intent(user_message)
-    now = datetime.now()
-
+    IST = pytz.timezone('Asia/Kolkata')
+    now = datetime.now(IST)
     if intent == "get_time":
         if language == "hindi":
             return f"Krishna, abhi {now.strftime('%I:%M %p')} baj rahe hain!"

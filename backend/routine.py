@@ -105,7 +105,8 @@ def get_daily_routine():
     return sorted(routine, key=sort_by_time)
 
 def get_morning_briefing(weather_func, tasks_func, reminders_func):
-    now = datetime.now()
+    IST = pytz.timezone('Asia/Kolkata')
+    now = datetime.now(IST)
     hour = now.hour
 
     if hour < 12:
