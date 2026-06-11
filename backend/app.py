@@ -291,7 +291,17 @@ def news():
 
 @app.route('/api/briefing', methods=['GET'])
 def briefing():
-    return jsonify({"briefing": get_morning_briefing(get_weather, get_tasks, get_reminders)})
+    try:
+        from database import get_reminders as fetch_reminders
+        result = get_morning_briefing(get_weather, get_tasks, fetch_reminders)
+        return jsonify({"briefing": result})
+    except Exception as e:
+        print(f"Briefing error: {str(e)}")
+        from datetime import datetime
+        import pytz
+        IST = pytz.timezone('Asia/Kolkata')
+        now = datetime.now(IST)
+        return jsonify({"briefing": f"Good {'morning' if now.hour < 12 else 'afternoon' if now.hour < 17 else 'evening'} Krishna! Mawa is ready to help you today!"})
 # Keep alive ping
 @app.route('/ping', methods=['GET'])
 def ping():
