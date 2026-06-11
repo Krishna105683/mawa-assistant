@@ -101,21 +101,36 @@ export default function App() {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [t, r, h, ro, w, br] = await Promise.all([
+      // Fetch tasks, reminders, habits, routine first
+      const [t, r, h, ro] = await Promise.all([
         axios.get(`${API}/tasks`),
         axios.get(`${API}/reminders`),
         axios.get(`${API}/habits`),
         axios.get(`${API}/routine`),
-        axios.get(`${API}/weather`),
-        axios.get(`${API}/briefing`),
       ]);
       setTasks(t.data);
       setReminders(r.data);
       setHabits(h.data);
       setRoutine(ro.data);
+    } catch (e) { console.error("Data fetch error:", e); }
+
+    // Fetch weather separately
+    try {
+      const w = await axios.get(`${API}/weather`, { timeout: 15000 });
       setWeather(w.data.weather);
+    } catch (e) {
+      console.error("Weather fetch error:", e);
+      setWeather("Weather temporarily unavailable. Please refresh!");
+    }
+
+    // Fetch briefing separately
+    try {
+      const br = await axios.get(`${API}/briefing`, { timeout: 15000 });
       setBriefing(br.data.briefing);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error("Briefing fetch error:", e);
+      setBriefing("Briefing temporarily unavailable. Please refresh!");
+    }
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
