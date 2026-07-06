@@ -5,7 +5,8 @@ import pytz
 import os
 from dotenv import load_dotenv
 from groq import Groq
-from database_pg import init_db, add_task, get_tasks, complete_task, delete_task, add_reminder, get_reminders, add_habit, get_today_habits, complete_habit, add_routine_activity, get_daily_routine
+from database import init_db, add_task, get_tasks, complete_task, delete_task, get_reminders, add_reminder
+from routine import init_routine_db, get_morning_briefing, add_habit, get_today_habits, complete_habit, get_habit_streak, add_routine_activity, get_daily_routine, get_weekly_review
 from routine import init_routine_db, get_morning_briefing, get_habit_streak, get_weekly_review
 from weather_news import get_weather, get_news
 from reminder import set_reminder, start_reminder_thread
@@ -22,6 +23,7 @@ CORS(app,
      supports_credentials=True)
 
 init_db()
+init_routine_db()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
