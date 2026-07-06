@@ -419,7 +419,15 @@ export default function App() {
               {messages.map((m, i) => (
                 <div key={i} style={{ alignSelf: m.from === "user" ? "flex-end" : "flex-start", maxWidth: isMobile ? "85%" : "68%" }}>
                   {m.from === "mawa" && <div style={{ fontSize: "11px", color: c.accent, fontWeight: "700", marginBottom: "4px" }}>✨ Mawa</div>}
-                  <div style={{ padding: "11px 16px", borderRadius: m.from === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", background: m.from === "user" ? `linear-gradient(135deg, ${c.accent}, ${c.pink})` : c.card, border: m.from === "mawa" ? `1px solid ${c.border}` : "none", fontSize: isMobile ? "13px" : "14px", lineHeight: "1.6", color: m.from === "user" ? "white" : c.text, whiteSpace: "pre-wrap" }}>{m.text}</div>
+                  <div style={{ padding: "11px 16px", borderRadius: m.from === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", background: m.from === "user" ? `linear-gradient(135deg, ${c.accent}, ${c.pink})` : c.card, border: m.from === "mawa" ? `1px solid ${c.border}` : "none", fontSize: isMobile ? "13px" : "14px", lineHeight: "1.6",}}>
+                    {m.text.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+                      part.match(/https?:\/\/[^\s]+/) ?
+                        <a key={i} href={part} target="_blank" rel="noopener noreferrer"
+                           style={{ color: "#7c5cfc", textDecoration: "underline" }}>
+                          🎵 Open YouTube
+                        </a> : part
+                    )}
+                  </div>
                 </div>
               ))}
               {loading && (

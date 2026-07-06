@@ -209,7 +209,24 @@ def handle_message(user_message, language="english"):
 
     elif intent == "morning_briefing":
         return get_morning_briefing(get_weather, get_tasks, get_reminders)
-
+    elif intent == "play_music":
+        # Extract song/music name
+        music_query = user_message.lower()
+        for word in ["play music", "play song", "play songs", "play",
+                     "gaana bajao", "music bajao", "song bajao",
+                     "gaana chalaao", "music play"]:
+            music_query = music_query.replace(word, "").strip()
+        
+        if music_query:
+            youtube_url = f"https://www.youtube.com/results?search_query={music_query.replace(' ', '+')}"
+            if language == "hindi":
+                return f"Krishna, '{music_query}' YouTube pe search kar raha hoon! Link: {youtube_url}"
+            return f"Playing '{music_query}' on YouTube Krishna! Link: {youtube_url}"
+        else:
+            youtube_url = "https://www.youtube.com/results?search_query=relaxing+music"
+            if language == "hindi":
+                return f"Krishna, relaxing music YouTube pe search kar raha hoon! Link: {youtube_url}"
+            return f"Opening YouTube music for you Krishna! Link: {youtube_url}"
     elif intent == "greeting":
         hour = now.hour
         if language == "hindi":
