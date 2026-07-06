@@ -335,6 +335,20 @@ def briefing():
         return jsonify({"briefing": briefing_text})
     except Exception as e:
         return jsonify({"briefing": f"Good day Krishna! Mawa is here to help! Error: {str(e)}"})
+@app.route('/api/music/search', methods=['GET'])
+def music_search():
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify({"songs": []})
+    from music import search_jiosaavn
+    songs = search_jiosaavn(query)
+    return jsonify({"songs": songs})
+
+@app.route('/api/music/song/<song_id>', methods=['GET'])
+def get_song(song_id):
+    from music import get_song_url
+    url = get_song_url(song_id)
+    return jsonify({"url": url})    
 # Keep alive ping
 @app.route('/ping', methods=['GET'])
 def ping():

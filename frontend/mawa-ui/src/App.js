@@ -88,6 +88,11 @@ export default function App() {
   const [weather, setWeather] = useState("");
   const [briefing, setBriefing] = useState("");
   const [news, setNews] = useState("");
+  const [musicResults, setMusicResults] = useState([]);
+  const [currentSong, setCurrentSong] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showMusic, setShowMusic] = useState(false);
+  const audioRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const bottomRef = useRef(null);
@@ -172,11 +177,16 @@ export default function App() {
         reply = "Here are your habits Krishna:\n";
         responseData.data.forEach(h => { reply += `• ${h.done ? "✅" : "⬜"} ${h.name}\n`; });
       } else if (responseData?.type === "routine") {
+      } else if (responseData?.type === "music") {
+        setMusicResults(responseData.data);
+        setShowMusic(true);
+        reply = `Found ${responseData.data.length} songs Krishna! Check the music player below! 🎵`;  
         reply = "Here is your daily routine Krishna:\n";
         responseData.data.forEach(r => { reply += `• ${r.time} — ${r.activity}\n`; });
       } else {
         reply = JSON.stringify(responseData);
       }
+  
 
       setMessages(prev => [...prev, { from: "mawa", text: reply }]);
       speakText(reply);
@@ -186,6 +196,7 @@ export default function App() {
     }
     setLoading(false);
   }, [fetchAll]);
+  
 
   const toggleListen = () => {
     if (listening) { recogRef.current?.stop(); return; }
@@ -371,7 +382,46 @@ export default function App() {
       </div>
     </>
   );
+const MusicPlayer = () => (
+    showMusic && (
+      <div style={{ position: "fixed", bottom: isMobile ? "70px" : "20px", right: "20px", width: isMobile ? "calc(100% - 40px)" : "320px", background: c.card, border: `1px solid ${c.border}`, borderRadius: "16px", padding: "16px", zIndex: 200, boxShadow: "0 4px 24px rgba(0,0,0,0.3)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+          <div style={{ fontSize: "14px", fontWeight: "600", color: c.accent }}>🎵 Music Player</div>
+          <button onClick={() => setShowMusic(false)} style={{ background: "transparent", border: "none", color: c.sub, cursor: "pointer", fontSize: "18px" }}>✕</button>
+        </div>
+        {currentSong && (
+          <div style={{ marginBottom: "12px", padding: "10px", background: c.bg, borderRadius: "10px" }}>
+            <div style={{ fontSize: "13px", fontWeight: "600", color: c.text }}>{currentSong.name}</div>
+            <div style={{ fontSize: "11px", color: c.sub }}>{currentSong.artist}</div>
+            <audio
+              ref={audioRef}
+              src={currentSong.url}
+              autoPlay
+              controls
+              style={{ width: "100%", marginTop: "8px" }}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            />
+          </div>
+        )}
+        <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+          {musicResults.map((song, i) => (
+            <div key={i} onClick={() => setCurrentSong(song)}
+              style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px", borderRadius: "8px", cursor: "pointer", background: currentSong?.id === song.id ? `${c.accent}20` : "transparent", marginBottom: "4px" }}>
+              {song.image && <img src={song.image} alt={song.name} style={{ width: "36px", height: "36px", borderRadius: "6px", objectFit: "cover" }} />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "12px", fontWeight: "600", color: c.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{song.name}</div>
+                <div style={{ fontSize: "11px", color: c.sub }}>{song.artist}</div>
+              </div>
+              <span style={{ fontSize: "16px" }}>{currentSong?.id === song.id ? "🔊" : "▶️"}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  );
 
+  
   return (
     <div style={s.app}>
       {/* Desktop Sidebar */}
@@ -474,6 +524,7 @@ export default function App() {
           ))}
         </div>
       )}
+    <MusicPlayer/>
     </div>
   );
 }
