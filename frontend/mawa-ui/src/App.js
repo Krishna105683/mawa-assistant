@@ -179,10 +179,8 @@ export default function App() {
         reply = "Here are your habits Krishna:\n";
         responseData.data.forEach(h => { reply += `• ${h.done ? "✅" : "⬜"} ${h.name}\n`; });
       } else if (responseData?.type === "routine") {
-
-      } else if (responseData?.type === "music") {
-        console.log("Setting music results:", responseData.data);
-        console.log("Setting showMusic to true");
+} else if (responseData?.type === "music") {
+        setCurrentSong(null);
         setMusicResults(responseData.data);
         setShowMusic(true);
         reply = `Found ${responseData.data.length} songs Krishna! Check the music player below! 🎵`;
