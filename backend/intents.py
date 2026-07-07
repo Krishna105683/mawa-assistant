@@ -104,12 +104,18 @@ def detect_intent(message):
     elif any(word in message for word in ["morning briefing", "daily briefing",
                                            "aaj ka briefing", "briefing do"]):
         return "morning_briefing"
+    # Spotify intents
+    elif any(word in message for word in ["play on spotify", "spotify play",
+                                           "spotify mein bajao", "open spotify",
+                                           "spotify pe bajao", "spotify"]):
+        return "play_spotify"
     # Music intents
     elif any(word in message for word in ["play music", "play song", "play songs",
                                            "music play", "song play", "play",
                                            "gaana bajao", "music bajao", "song bajao",
                                            "gaana chalaao", "play gaana"]):
         return "play_music"
+    
     # Goodbye
     elif any(word in message for word in ["bye", "goodbye", "see you",
                                            "exit", "quit", "alvida",
