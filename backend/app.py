@@ -210,7 +210,6 @@ def handle_message(user_message, language="english"):
     elif intent == "morning_briefing":
         return get_morning_briefing(get_weather, get_tasks, get_reminders)
     elif intent == "play_music":
-        # Extract song/music name
         music_query = user_message.lower()
         for word in ["play music", "play song", "play songs", "play",
                      "gaana bajao", "music bajao", "song bajao",
@@ -218,15 +217,19 @@ def handle_message(user_message, language="english"):
             music_query = music_query.replace(word, "").strip()
         
         if music_query:
-            youtube_url = f"https://www.youtube.com/results?search_query={music_query.replace(' ', '+')}"
-            if language == "hindi":
-                return f"Krishna, '{music_query}' YouTube pe search kar raha hoon! Link: {youtube_url}"
-            return f"Playing '{music_query}' on YouTube Krishna! Link: {youtube_url}"
+            from music import search_jiosaavn
+            songs = search_jiosaavn(music_query)
+            if songs:
+                return {"type": "music", "data": songs, "query": music_query}
+            else:
+                youtube_url = f"https://www.youtube.com/results?search_query={music_query.replace(' ', '+')}"
+                if language == "hindi":
+                    return f"Krishna, JioSaavn pe nahi mila! YouTube try karo: {youtube_url}"
+                return f"Couldn't find on JioSaavn! Try YouTube Krishna: {youtube_url}"
         else:
-            youtube_url = "https://www.youtube.com/results?search_query=relaxing+music"
             if language == "hindi":
-                return f"Krishna, relaxing music YouTube pe search kar raha hoon! Link: {youtube_url}"
-            return f"Opening YouTube music for you Krishna! Link: {youtube_url}"
+                return "Krishna, kaunsa gaana bajana hai? Batao!"
+            return "What song would you like to play Krishna?"
     elif intent == "greeting":
         hour = now.hour
         if language == "hindi":
