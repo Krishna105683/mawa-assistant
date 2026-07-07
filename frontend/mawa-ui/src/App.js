@@ -90,6 +90,7 @@ export default function App() {
   const [news, setNews] = useState("");
   const [musicResults, setMusicResults] = useState([]);
   const [currentSong, setCurrentSong] = useState(null);
+  // eslint-disable-next-line
   const [isPlaying, setIsPlaying] = useState(false);
   const [showMusic, setShowMusic] = useState(false);
   const audioRef = useRef(null);
