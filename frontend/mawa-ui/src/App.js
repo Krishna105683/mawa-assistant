@@ -177,14 +177,12 @@ export default function App() {
         reply = "Here are your habits Krishna:\n";
         responseData.data.forEach(h => { reply += `• ${h.done ? "✅" : "⬜"} ${h.name}\n`; });
       } else if (responseData?.type === "routine") {
+
       } else if (responseData?.type === "music") {
         setMusicResults(responseData.data);
         setShowMusic(true);
         reply = `Found ${responseData.data.length} songs Krishna! Check the music player below! 🎵`;  
-        reply = "Here is your daily routine Krishna:\n";
-        responseData.data.forEach(r => { reply += `• ${r.time} — ${r.activity}\n`; });
-      } else {
-        reply = JSON.stringify(responseData);
+       
       }
   
 
