@@ -213,7 +213,7 @@ def handle_message(user_message, language="english"):
     elif intent == "play_spotify":
         music_query = user_message.lower()
         for word in ["play on spotify", "spotify play", "spotify mein bajao",
-                     "open spotify", "spotify pe bajao", "on spotify", "spotify"]:
+                     "open spotify", "spotify pe bajao", "on spotify", "spotify", "play"]:
             music_query = music_query.replace(word, "").strip()
         if music_query:
             spotify_url = f"https://open.spotify.com/search/{music_query.replace(' ', '%20')}"

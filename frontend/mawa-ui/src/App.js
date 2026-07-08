@@ -479,7 +479,7 @@ const MusicPlayer = () => (
                       part.match(/https?:\/\/[^\s]+/) ?
                         <a key={i} href={part} target="_blank" rel="noopener noreferrer"
                            style={{ color: "#7c5cfc", textDecoration: "underline" }}>
-                          🎵 Open YouTube
+                        🔗 Open Link
                         </a> : part
                     )}
                   </div>
