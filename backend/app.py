@@ -209,6 +209,49 @@ def handle_message(user_message, language="english"):
 
     elif intent == "morning_briefing":
         return get_morning_briefing(get_weather, get_tasks, get_reminders)
+    
+    elif intent == "play_spotify":
+        music_query = user_message.lower()
+        for word in ["play on spotify", "spotify play", "spotify mein bajao",
+                     "open spotify", "spotify pe bajao", "on spotify", "spotify"]:
+            music_query = music_query.replace(word, "").strip()
+        if music_query:
+            spotify_url = f"https://open.spotify.com/search/{music_query.replace(' ', '%20')}"
+            if language == "hindi":
+                return f"Krishna, '{music_query}' Spotify pe search kar raha hoon! Link: {spotify_url}"
+            return f"Searching '{music_query}' on Spotify Krishna! Link: {spotify_url}"
+        else:
+            spotify_url = "https://open.spotify.com"
+            if language == "hindi":
+                return f"Krishna, Spotify khol raha hoon! Link: {spotify_url}"
+            return f"Opening Spotify for you Krishna! Link: {spotify_url}"
+
+    elif intent == "play_jiosaavn":
+        music_query = user_message.lower()
+        for word in ["play on jiosaavn", "jiosaavn play", "jiosaavn pe bajao",
+                     "saavn pe bajao", "open jiosaavn", "jiosaavn"]:
+            music_query = music_query.replace(word, "").strip()
+        if music_query:
+            url = f"https://www.jiosaavn.com/search/{music_query.replace(' ', '%20')}"
+            if language == "hindi":
+                return f"Krishna, '{music_query}' JioSaavn pe search kar raha hoon! Link: {url}"
+            return f"Searching '{music_query}' on JioSaavn Krishna! Link: {url}"
+        else:
+            return f"Opening JioSaavn for you Krishna! Link: https://www.jiosaavn.com"
+
+    elif intent == "play_gaana":
+        music_query = user_message.lower()
+        for word in ["play on gaana", "gaana play", "gaana pe bajao",
+                     "open gaana", "gaana.com"]:
+            music_query = music_query.replace(word, "").strip()
+        if music_query:
+            url = f"https://gaana.com/search/{music_query.replace(' ', '%20')}"
+            if language == "hindi":
+                return f"Krishna, '{music_query}' Gaana pe search kar raha hoon! Link: {url}"
+            return f"Searching '{music_query}' on Gaana Krishna! Link: {url}"
+        else:
+            return f"Opening Gaana for you Krishna! Link: https://gaana.com"
+
     elif intent == "play_music":
         music_query = user_message.lower()
         for word in ["play music", "play song", "play songs", "play",
