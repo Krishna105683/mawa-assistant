@@ -245,7 +245,7 @@ def handle_message(user_message, language="english"):
                      "open gaana", "gaana.com"]:
             music_query = music_query.replace(word, "").strip()
         if music_query:
-            url = f"https://gaana.com/search/{music_query.replace(' ', '%20')}"
+            url = f"https://gaana.com/search/track/{music_query.replace(' ', '%20')}"
             if language == "hindi":
                 return f"Krishna, '{music_query}' Gaana pe search kar raha hoon! Link: {url}"
             return f"Searching '{music_query}' on Gaana Krishna! Link: {url}"
