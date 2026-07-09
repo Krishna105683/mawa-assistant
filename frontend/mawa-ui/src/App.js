@@ -141,7 +141,8 @@ export default function App() {
       if (res.data.success) {
         localStorage.setItem('mawa_token', res.data.token);
         localStorage.setItem('mawa_name', res.data.name);
-        localStorage.removeItem('mawa_name');(res.data.name);
+        localStorage.removeItem('mawa_name',res.data.name);
+        setIsLoggedIn(true); 
         setIsLoggedIn(true);
       } else {
         setAuthError(res.data.error);
@@ -178,8 +179,8 @@ export default function App() {
     localStorage.removeItem('mawa_token');
     localStorage.removeItem('mawa_name');
     setIsLoggedIn(false);
-    localStorage.removeItem('mawa_name');('');
   };
+
   const fetchAll = useCallback(async () => {
     try {
       // Fetch tasks, reminders, habits, routine first
