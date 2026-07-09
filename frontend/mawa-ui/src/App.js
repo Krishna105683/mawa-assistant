@@ -73,6 +73,12 @@ const TaskInput = ({ onAdd, dark }) => {
 
 // ── Main App ──────────────────────────────────────────
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('mawa_token'));
+  const [authMode, setAuthMode] = useState('login');
+  const [userName, setUserName] = useState(localStorage.getItem('mawa_name') || '');
+  const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
   const [dark, setDark] = useState(true);
   const [tab, setTab] = useState("home");
   const [messages, setMessages] = useState([
@@ -104,7 +110,53 @@ export default function App() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+  const handleRegister = async () => {
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      const res = await axios.post(`${API}/register`, authForm);
+      if (res.data.success) {
+        localStorage.setItem('mawa_token', res.data.token);
+        localStorage.setItem('mawa_name', res.data.name);
+        setUserName(res.data.name);
+        setIsLoggedIn(true);
+      } else {
+        setAuthError(res.data.error);
+      }
+    } catch (e) {
+      setAuthError('Something went wrong!');
+    }
+    setAuthLoading(false);
+  };
 
+  const handleLogin = async () => {
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      const res = await axios.post(`${API}/login`, {
+        email: authForm.email,
+        password: authForm.password
+      });
+      if (res.data.success) {
+        localStorage.setItem('mawa_token', res.data.token);
+        localStorage.setItem('mawa_name', res.data.name);
+        setUserName(res.data.name);
+        setIsLoggedIn(true);
+      } else {
+        setAuthError(res.data.error);
+      }
+    } catch (e) {
+      setAuthError('Something went wrong!');
+    }
+    setAuthLoading(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('mawa_token');
+    localStorage.removeItem('mawa_name');
+    setIsLoggedIn(false);
+    setUserName('');
+  };
   const fetchAll = useCallback(async () => {
     try {
       // Fetch tasks, reminders, habits, routine first
@@ -382,6 +434,89 @@ export default function App() {
       </div>
     </>
   );
+const AuthPage = () => (
+    <div style={{ minHeight: "100vh", background: c.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+      <div style={{ width: "100%", maxWidth: "400px" }}>
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <img src="/Mawa-logo.png" alt="Mawa" style={{ width: "80px", height: "80px", objectFit: "contain", mixBlendMode: "screen" }} />
+          <div style={{ fontSize: "28px", fontWeight: "800", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>MAWA</div>
+          <div style={{ fontSize: "13px", color: c.sub }}>Your Personal AI Assistant</div>
+        </div>
+
+        {/* Card */}
+        <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: "16px", padding: "28px" }}>
+          <div style={{ display: "flex", marginBottom: "24px", background: c.bg, borderRadius: "10px", padding: "4px" }}>
+            <button onClick={() => setAuthMode('login')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", background: authMode === 'login' ? c.accent : "transparent", color: authMode === 'login' ? "white" : c.sub, cursor: "pointer", fontWeight: "600", fontSize: "14px" }}>Login</button>
+            <button onClick={() => setAuthMode('register')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", background: authMode === 'register' ? c.accent : "transparent", color: authMode === 'register' ? "white" : c.sub, cursor: "pointer", fontWeight: "600", fontSize: "14px" }}>Register</button>
+          </div>
+
+          {authMode === 'register' && (
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ fontSize: "13px", color: c.sub, marginBottom: "6px", display: "block" }}>Your Name</label>
+              <input
+                style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                placeholder="Krishna Kumar"
+                value={authForm.name}
+                onChange={e => setAuthForm({ ...authForm, name: e.target.value })}
+                autoComplete="off"
+              />
+            </div>
+          )}
+
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ fontSize: "13px", color: c.sub, marginBottom: "6px", display: "block" }}>Email</label>
+            <input
+              style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+              placeholder="your@email.com"
+              value={authForm.email}
+              onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
+              autoComplete="off"
+            />
+          </div>
+
+          <div style={{ marginBottom: "24px" }}>
+            <label style={{ fontSize: "13px", color: c.sub, marginBottom: "6px", display: "block" }}>Password</label>
+            <input
+              type="password"
+              style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+              placeholder="••••••••"
+              value={authForm.password}
+              onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
+              onKeyDown={e => e.key === 'Enter' && (authMode === 'login' ? handleLogin() : handleRegister())}
+            />
+          </div>
+
+          {authError && (
+            <div style={{ background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "10px 14px", fontSize: "13px", color: "#dc2626", marginBottom: "16px" }}>
+              {authError}
+            </div>
+          )}
+
+          <button
+            onClick={authMode === 'login' ? handleLogin : handleRegister}
+            disabled={authLoading}
+            style={{ width: "100%", padding: "14px", borderRadius: "10px", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "15px" }}
+          >
+            {authLoading ? "Please wait..." : authMode === 'login' ? "Login to Mawa" : "Create Account"}
+          </button>
+
+          <div style={{ textAlign: "center", marginTop: "16px", fontSize: "13px", color: c.sub }}>
+            {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
+            <span onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} style={{ color: c.accent, cursor: "pointer", fontWeight: "600" }}>
+              {authMode === 'login' ? 'Register' : 'Login'}
+            </span>
+          </div>
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: "16px" }}>
+          <div onClick={() => setDark(!dark)} style={{ fontSize: "12px", color: c.sub, cursor: "pointer" }}>
+            {dark ? "☀️ Light mode" : "🌙 Dark mode"}
+          </div>
+        </div>
+      </div>
+    </div>
+  );  
 const MusicPlayer = () => (
     <div>
       {showMusic && (
@@ -427,6 +562,10 @@ const MusicPlayer = () => (
   );
 
   
+  if (!isLoggedIn) {
+    return <AuthPage />;
+  }
+
   return (
     <div style={s.app}>
       {/* Desktop Sidebar */}
@@ -465,6 +604,7 @@ const MusicPlayer = () => (
               </button>
             )}
             <button onClick={fetchAll} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
+            <button onClick={handleLogout} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🚪</button>
           </div>
         </div>
 
