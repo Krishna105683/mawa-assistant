@@ -3,6 +3,30 @@ import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL || "http://127.0.0.1:5000/api";
 
+// Auth Form Component (outside App to prevent re-renders)
+const AuthInput = ({ label, type, placeholder, value, onChange, onKeyDown }) => {
+  // Use the controlled value directly. Having an internal state here can cause the
+  // input to desync with the parent state.
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <label style={{ fontSize: "13px", color: "#8888aa", marginBottom: "6px", display: "block" }}>{label}</label>
+      <input
+        type={type || "text"}
+        style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #1e1e3f", background: "#080814", color: "#e8e8ff", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+        placeholder={placeholder}
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
+        autoComplete="new-password"
+        inputMode={type === 'password' ? 'text' : undefined}
+        spellCheck={false}
+      />
+    </div>
+  );
+};
+
+
+
 // ── Voice ─────────────────────────────────────────────
 const speakText = (text) => {
   window.speechSynthesis.cancel();
@@ -451,41 +475,37 @@ const AuthPage = () => (
             <button onClick={() => setAuthMode('register')} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", background: authMode === 'register' ? c.accent : "transparent", color: authMode === 'register' ? "white" : c.sub, cursor: "pointer", fontWeight: "600", fontSize: "14px" }}>Register</button>
           </div>
 
+          {/* Show name only during register, not login */}
           {authMode === 'register' && (
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontSize: "13px", color: c.sub, marginBottom: "6px", display: "block" }}>Your Name</label>
-              <input
-                style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
-                placeholder="Krishna Kumar"
-                value={authForm.name}
-                onChange={e => setAuthForm({ ...authForm, name: e.target.value })}
-                autoComplete="off"
-              />
-            </div>
+            <AuthInput
+              label="Your Name"
+              placeholder="Joffrey Smith"
+              value={authForm.name}
+              onChange={val => setAuthForm(prev => ({ ...prev, name: val }))}
+            />
           )}
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ fontSize: "13px", color: c.sub, marginBottom: "6px", display: "block" }}>Email</label>
-            <input
-              style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
-              placeholder="your@email.com"
-              value={authForm.email}
-              onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
-              autoComplete="off"
-            />
-          </div>
 
-          <div style={{ marginBottom: "24px" }}>
-            <label style={{ fontSize: "13px", color: c.sub, marginBottom: "6px", display: "block" }}>Password</label>
-            <input
-              type="password"
-              style={{ width: "100%", padding: "12px", borderRadius: "10px", border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
-              placeholder="••••••••"
-              value={authForm.password}
-              onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
-              onKeyDown={e => e.key === 'Enter' && (authMode === 'login' ? handleLogin() : handleRegister())}
-            />
-          </div>
+          <AuthInput
+                label="Email"
+                placeholder="your@email.com"
+                value={authForm.email}
+                onChange={val => setAuthForm(prev => ({ ...prev, email: val }))}
+              />
+
+          <AuthInput
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={authForm.password}
+                onChange={val => setAuthForm(prev => ({ ...prev, password: val }))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    authMode === 'login' ? handleLogin() : handleRegister();
+                  }
+                }}
+              />
+
 
           {authError && (
             <div style={{ background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "10px 14px", fontSize: "13px", color: "#dc2626", marginBottom: "16px" }}>
