@@ -141,7 +141,7 @@ export default function App() {
       if (res.data.success) {
         localStorage.setItem('mawa_token', res.data.token);
         localStorage.setItem('mawa_name', res.data.name);
-        localStorage.removeItem('mawa_name',res.data.name);
+        localStorage.removeItem('mawa_name', res.data.name);
         setIsLoggedIn(true); 
         setIsLoggedIn(true);
       } else {
@@ -164,7 +164,7 @@ export default function App() {
       if (res.data.success) {
         localStorage.setItem('mawa_token', res.data.token);
         localStorage.setItem('mawa_name', res.data.name);
-        localStorage.removeItem('mawa_name');(res.data.name);
+        localStorage.removeItem('mawa_name', res.data.name);
         setIsLoggedIn(true);
       } else {
         setAuthError(res.data.error);
