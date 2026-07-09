@@ -99,7 +99,6 @@ const TaskInput = ({ onAdd, dark }) => {
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('mawa_token'));
   const [authMode, setAuthMode] = useState('login');
-  const [userName, setUserName] = useState(localStorage.getItem('mawa_name') || '');
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
