@@ -1,3 +1,5 @@
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from auth import init_users_db, register_user, login_user, complete_setup
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from datetime import datetime
@@ -21,9 +23,12 @@ CORS(app,
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "DELETE", "OPTIONS"],
      supports_credentials=True)
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "mawa-secret-key-2024")
+jwt = JWTManager(app)
 
 init_db()
 init_routine_db()
+init_users_db()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -399,5 +404,42 @@ def get_song(song_id):
 @app.route('/ping', methods=['GET'])
 def ping():
     return jsonify({"status": "alive", "message": "Mawa is awake!"})
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    name = data.get('name', '')
+    email = data.get('email', '')
+    password = data.get('password', '')
+    if not name or not email or not password:
+        return jsonify({"success": False, "error": "All fields required!"})
+    result = register_user(name, email, password)
+    if result["success"]:
+        token = create_access_token(identity=str(result["user_id"]))
+        return jsonify({"success": True, "token": token, "name": name, "setup_done": 0})
+    return jsonify(result)
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email', '')
+    password = data.get('password', '')
+    if not email or not password:
+        return jsonify({"success": False, "error": "Email and password required!"})
+    result = login_user(email, password)
+    if result["success"]:
+        token = create_access_token(identity=str(result["user_id"]))
+        return jsonify({"success": True, "token": token, "name": result["name"], "language": result["language"], "setup_done": result["setup_done"]})
+    return jsonify(result)
+
+@app.route('/api/setup', methods=['POST'])
+def setup():
+    data = request.json
+    user_id = data.get('user_id')
+    language = data.get('language', 'english')
+    complete_setup(user_id, language)
+    return jsonify({"success": True})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
