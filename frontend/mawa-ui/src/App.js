@@ -106,7 +106,7 @@ export default function App() {
   const [dark, setDark] = useState(true);
   const [tab, setTab] = useState("home");
   const [messages, setMessages] = useState([
-    { from: "mawa", text: "Namaste Krishna! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?" }
+    { from: "mawa", text: `Namaste ${localStorage.getItem('mawa_name') || 'Krishna'}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [loading, setLoading] = useState(false);
