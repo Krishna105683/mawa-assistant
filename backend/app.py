@@ -351,7 +351,9 @@ def get_routine():
 
 @app.route('/api/weather', methods=['GET'])
 def weather():
-    return jsonify({"weather": get_weather()})
+    lat = request.args.get('lat', None)
+    lon = request.args.get('lon', None)
+    return jsonify({"weather": get_weather(lat, lon)})
 
 @app.route('/api/news', methods=['GET', 'OPTIONS'])
 @cross_origin()
@@ -368,6 +370,9 @@ def briefing():
         now = datetime.now(IST)
         tasks = get_tasks()
         reminders = fetch_reminders()
+        lat = request.args.get('lat', None)
+        lon = request.args.get('lon', None)
+        city = request.args.get('city', 'Hyderabad')
         hour = now.hour
         if hour < 12:
             greeting = "Suprabhat"
@@ -375,7 +380,7 @@ def briefing():
             greeting = "Namaskar"
         else:
             greeting = "Shubh Sandhya"
-        briefing_text = f"{greeting} Krishna! Aaj {now.strftime('%A, %d %B %Y')} hai. "
+        briefing_text = f"{greeting}! Aaj {now.strftime('%A, %d %B %Y')} hai. "
         if tasks:
             briefing_text += f"Aapke {len(tasks)} pending tasks hain. "
         else:
@@ -385,7 +390,8 @@ def briefing():
         briefing_text += "Batao kya madad chahiye?"
         return jsonify({"briefing": briefing_text})
     except Exception as e:
-        return jsonify({"briefing": f"Good day Krishna! Mawa is here to help! Error: {str(e)}"})
+        return jsonify({"briefing": f"Good day! Mawa is here to help! Error: {str(e)}"})
+    
 @app.route('/api/music/search', methods=['GET'])
 def music_search():
     query = request.args.get('q', '')

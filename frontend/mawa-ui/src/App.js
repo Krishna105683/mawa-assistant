@@ -104,7 +104,7 @@ export default function App() {
   const [dark, setDark] = useState(true);
   const [tab, setTab] = useState("home");
   const [messages, setMessages] = useState([
-    { from: "mawa", text: `Namaste ${localStorage.getItem('mawa_name') || 'Krishna'}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }
+    { from: "mawa", text: `Namaste ${localStorage.getItem('mawa_name') || 'Friend'}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -114,6 +114,7 @@ export default function App() {
   const [habits, setHabits] = useState([]);
   const [routine, setRoutine] = useState([]);
   const [weather, setWeather] = useState("");
+  const [userLocation, setUserLocation] = useState({ city: "Hyderabad", lat: 17.3850, lon: 78.4867 });
   const [briefing, setBriefing] = useState("");
   const [news, setNews] = useState("");
   const [musicResults, setMusicResults] = useState([]);
@@ -197,7 +198,7 @@ export default function App() {
 
     // Fetch weather separately
     try {
-      const w = await axios.get(`${API}/weather`, { timeout: 15000 });
+      const w = await axios.get(`${API}/weather?lat=${userLocation.lat}&lon=${userLocation.lon}`, { timeout: 15000 });
       setWeather(w.data.weather);
     } catch (e) {
       console.error("Weather fetch error:", e);
@@ -206,7 +207,7 @@ export default function App() {
 
     // Fetch briefing separately
     try {
-      const br = await axios.get(`${API}/briefing`, { timeout: 15000 });
+      const br = await axios.get(`${API}/briefing?lat=${userLocation.lat}&lon=${userLocation.lon}&city=${userLocation.city}`, { timeout: 15000 });
       setBriefing(br.data.briefing);
     } catch (e) {
       console.error("Briefing fetch error:", e);
@@ -215,6 +216,28 @@ export default function App() {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+  // Detect user location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Reverse geocode to get city name
+            const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+            const city = res.data.address.city || res.data.address.town || res.data.address.village || "Your City";
+            setUserLocation({ city, lat: latitude, lon: longitude });
+            // Update weather with user's location
+            const weatherRes = await axios.get(`${API}/weather?lat=${latitude}&lon=${longitude}`);
+            setWeather(weatherRes.data.weather);
+          } catch (e) {
+            console.error("Location error:", e);
+          }
+        },
+        () => console.log("Location access denied")
+      );
+    }
+  }, []);
   // Keep Render server awake
   useEffect(() => {
     const keepAlive = setInterval(() => {
