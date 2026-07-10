@@ -4,9 +4,8 @@ import axios from "axios";
 const API = process.env.REACT_APP_API_URL || "http://127.0.0.1:5000/api";
 
 // Auth Form Component (outside App to prevent re-renders)
-const AuthInput = ({ label, type, placeholder, value, onChange, onKeyDown }) => {
-  // Use the controlled value directly. Having an internal state here can cause the
-  // input to desync with the parent state.
+const AuthInput = ({ label, type, placeholder, defaultValue, onBlur, onKeyDown }) => {
+  const [val, setVal] = React.useState(defaultValue || '');
   return (
     <div style={{ marginBottom: "16px" }}>
       <label style={{ fontSize: "13px", color: "#8888aa", marginBottom: "6px", display: "block" }}>{label}</label>
@@ -14,12 +13,12 @@ const AuthInput = ({ label, type, placeholder, value, onChange, onKeyDown }) => 
         type={type || "text"}
         style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #1e1e3f", background: "#080814", color: "#e8e8ff", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
         placeholder={placeholder}
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value)}
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        onBlur={e => onBlur && onBlur(e.target.value)}
         onKeyDown={onKeyDown}
-        autoComplete="new-password"
-        inputMode={type === 'password' ? 'text' : undefined}
-        spellCheck={false}
+        autoComplete="off"
+        spellCheck="false"
       />
     </div>
   );
@@ -480,8 +479,8 @@ const AuthPage = () => (
             <AuthInput
               label="Your Name"
               placeholder="Joffrey Smith"
-              value={authForm.name}
-              onChange={val => setAuthForm(prev => ({ ...prev, name: val }))}
+              defaultValue={authForm.name}
+              onBlur={val => setAuthForm(prev => ({ ...prev, name: val }))}
             />
           )}
 
@@ -489,16 +488,16 @@ const AuthPage = () => (
           <AuthInput
                 label="Email"
                 placeholder="your@email.com"
-                value={authForm.email}
-                onChange={val => setAuthForm(prev => ({ ...prev, email: val }))}
+                defaultValue={authForm.email}
+                onBlur={val => setAuthForm(prev => ({ ...prev, email: val }))}
               />
 
           <AuthInput
                 label="Password"
                 type="password"
                 placeholder="••••••••"
-                value={authForm.password}
-                onChange={val => setAuthForm(prev => ({ ...prev, password: val }))}
+                defaultValue={authForm.password}
+                onBlur={val => setAuthForm(prev => ({ ...prev, password: val }))}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     authMode === 'login' ? handleLogin() : handleRegister();
