@@ -15,6 +15,7 @@ def init_routine_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS habits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER DEFAULT 0,
             name TEXT NOT NULL,
             completed INTEGER DEFAULT 0,
             date TEXT NOT NULL,
@@ -25,6 +26,7 @@ def init_routine_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS daily_routine (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER DEFAULT 0,
             activity TEXT NOT NULL,
             time TEXT NOT NULL,
             active INTEGER DEFAULT 1
@@ -34,19 +36,19 @@ def init_routine_db():
     conn.commit()
     conn.close()
 
-def add_habit(name):
+def add_habit(name, user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     today = datetime.now().strftime("%Y-%m-%d")
-    cursor.execute("INSERT INTO habits (name, date) VALUES (?, ?)", (name, today))
+    cursor.execute("INSERT INTO habits (name, date, user_id) VALUES (?, ?, ?)", (name, today, user_id))
     conn.commit()
     conn.close()
 
-def get_today_habits():
+def get_today_habits(user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     today = datetime.now().strftime("%Y-%m-%d")
-    cursor.execute("SELECT id, name, completed FROM habits WHERE date = ?", (today,))
+    cursor.execute("SELECT id, name, completed FROM habits WHERE date = ? AND user_id = ?", (today, user_id))
     habits = cursor.fetchall()
     conn.close()
     return habits
@@ -78,18 +80,18 @@ def get_habit_streak(habit_name):
             break
     return streak
 
-def add_routine_activity(activity, time):
+def add_routine_activity(activity, time, user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO daily_routine (activity, time) VALUES (?, ?)",
-                   (activity, time))
+    cursor.execute("INSERT INTO daily_routine (activity, time, user_id) VALUES (?, ?, ?)",
+                   (activity, time, user_id))
     conn.commit()
     conn.close()
 
-def get_daily_routine():
+def get_daily_routine(user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("SELECT id, activity, time FROM daily_routine WHERE active = 1")
+    cursor.execute("SELECT id, activity, time FROM daily_routine WHERE active = 1 AND user_id = ?", (user_id,))
     routine = cursor.fetchall()
     conn.close()
 

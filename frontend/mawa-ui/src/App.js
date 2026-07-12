@@ -115,6 +115,7 @@ export default function App() {
   const [routine, setRoutine] = useState([]);
   const [weather, setWeather] = useState("");
   const [userLocation, setUserLocation] = useState({ city: "Hyderabad", lat: 17.3850, lon: 78.4867 });
+  const [userId, setUserId] = useState(localStorage.getItem('mawa_user_id') || 0);
   const [briefing, setBriefing] = useState("");
   const [news, setNews] = useState("");
   const [musicResults, setMusicResults] = useState([]);
@@ -141,6 +142,8 @@ export default function App() {
       if (res.data.success) {
         localStorage.setItem('mawa_token', res.data.token);
         localStorage.setItem('mawa_name', res.data.name);
+        localStorage.setItem('mawa_user_id', res.data.user_id);
+        setUserId(res.data.user_id);
         localStorage.removeItem('mawa_name', res.data.name);
         setIsLoggedIn(true); 
         setIsLoggedIn(true);
@@ -164,6 +167,8 @@ export default function App() {
       if (res.data.success) {
         localStorage.setItem('mawa_token', res.data.token);
         localStorage.setItem('mawa_name', res.data.name);
+        localStorage.setItem('mawa_user_id', res.data.user_id);
+        setUserId(res.data.user_id);
         localStorage.removeItem('mawa_name', res.data.name);
         setIsLoggedIn(true);
       } else {
@@ -185,10 +190,10 @@ export default function App() {
     try {
       // Fetch tasks, reminders, habits, routine first
       const [t, r, h, ro] = await Promise.all([
-        axios.get(`${API}/tasks`),
-        axios.get(`${API}/reminders`),
-        axios.get(`${API}/habits`),
-        axios.get(`${API}/routine`),
+        axios.get(`${API}/tasks?user_id=${userId}`),
+        axios.get(`${API}/reminders?user_id=${userId}`),
+        axios.get(`${API}/habits?user_id=${userId}`),
+        axios.get(`${API}/routine?user_id=${userId}`),
       ]);
       setTasks(t.data);
       setReminders(r.data);
@@ -397,7 +402,7 @@ export default function App() {
       <div style={s.card}>
         <div style={s.cardTitle}>➕ Add Task</div>
         <TaskInput dark={dark} onAdd={async (task, time) => {
-          await axios.post(`${API}/tasks`, { task, time: time || null });
+          await axios.post(`${API}/tasks`, { task, time: time || null, user_id: userId });
           fetchAll();
         }} />
       </div>

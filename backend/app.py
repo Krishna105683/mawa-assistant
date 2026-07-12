@@ -310,13 +310,15 @@ def chat():
 
 @app.route('/api/tasks', methods=['GET'])
 def get_all_tasks():
-    tasks = get_tasks()
+    user_id = request.args.get('user_id', 0)
+    tasks = get_tasks(user_id)
     return jsonify([{"id": t[0], "task": t[1], "time": t[2]} for t in tasks])
 
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
     data = request.json
-    add_task(data['task'], data.get('time'))
+    user_id = data.get('user_id', 0)
+    add_task(data['task'], data.get('time'), user_id)
     return jsonify({"success": True})
 
 @app.route('/api/tasks/<int:task_id>/complete', methods=['POST'])
@@ -331,12 +333,14 @@ def remove_task(task_id):
 
 @app.route('/api/reminders', methods=['GET'])
 def get_all_reminders():
-    reminders = get_reminders()
+    user_id = request.args.get('user_id', 0)
+    reminders = get_reminders(user_id)
     return jsonify([{"id": r[0], "title": r[1], "time": r[2]} for r in reminders])
 
 @app.route('/api/habits', methods=['GET'])
 def get_all_habits():
-    habits = get_today_habits()
+    user_id = request.args.get('user_id', 0)
+    habits = get_today_habits(user_id)
     return jsonify([{"id": h[0], "name": h[1], "done": h[2]} for h in habits])
 
 @app.route('/api/habits/<int:habit_id>/complete', methods=['POST'])
@@ -346,7 +350,8 @@ def mark_habit_done(habit_id):
 
 @app.route('/api/routine', methods=['GET'])
 def get_routine():
-    routine = get_daily_routine()
+    user_id = request.args.get('user_id', 0)
+    routine = get_daily_routine(user_id)
     return jsonify([{"id": r[0], "activity": r[1], "time": r[2]} for r in routine])
 
 @app.route('/api/weather', methods=['GET'])
@@ -410,6 +415,7 @@ def get_song(song_id):
 @app.route('/ping', methods=['GET'])
 def ping():
     return jsonify({"status": "alive", "message": "Mawa is awake!"})
+
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
