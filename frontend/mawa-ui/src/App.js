@@ -218,7 +218,7 @@ export default function App() {
       console.error("Briefing fetch error:", e);
       setBriefing("Briefing temporarily unavailable. Please refresh!");
     }
-  }, [userLocation]);
+  }, [userLocation, userId]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
   // Detect user location
