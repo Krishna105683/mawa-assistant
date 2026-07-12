@@ -33,7 +33,8 @@ init_users_db()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """
-You are Mawa, a personal assistant for Krishna Kumar in Hyderabad, India.
+You are Mawa, Always address the user by their name from the conversation context.
+Location: Hyderabad, India
 
 STRICT LANGUAGE RULE:
 - When user speaks English respond in English ONLY
