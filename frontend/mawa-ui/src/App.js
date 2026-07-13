@@ -103,8 +103,9 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [dark, setDark] = useState(true);
   const [tab, setTab] = useState("home");
+  const loggedInName = localStorage.getItem('mawa_name') || 'Friend';
   const [messages, setMessages] = useState([
-    { from: "mawa", text: `Namaste ${localStorage.getItem('mawa_name') || 'Friend'}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }
+    { from: "mawa", text: `Namaste ${loggedInName}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -228,13 +229,16 @@ export default function App() {
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
-            // Reverse geocode to get city name
             const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
             const city = res.data.address.city || res.data.address.town || res.data.address.village || "Your City";
-            setUserLocation({ city, lat: latitude, lon: longitude });
-            // Update weather with user's location
+            const newLocation = { city, lat: latitude, lon: longitude };
+            setUserLocation(newLocation);
+            // Fetch weather with new location
             const weatherRes = await axios.get(`${API}/weather?lat=${latitude}&lon=${longitude}`);
             setWeather(weatherRes.data.weather);
+            // Fetch briefing with new location
+            const brRes = await axios.get(`${API}/briefing?lat=${latitude}&lon=${longitude}&city=${city}&user_id=${userId}`);
+            setBriefing(brRes.data.briefing);
           } catch (e) {
             console.error("Location error:", e);
           }
@@ -242,7 +246,7 @@ export default function App() {
         () => console.log("Location access denied")
       );
     }
-  }, []);
+  }, [userId]);
   // Keep Render server awake
   useEffect(() => {
     const keepAlive = setInterval(() => {
@@ -650,7 +654,7 @@ const MusicPlayer = () => (
                 {dark ? "☀️" : "🌙"}
               </button>
             )}
-            <button onClick={fetchAll} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
+            <button onClick={() => fetchAll()} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
             <button onClick={handleLogout} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🚪</button>
           </div>
         </div>
