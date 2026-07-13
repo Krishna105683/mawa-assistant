@@ -42,7 +42,7 @@ STRICT LANGUAGE RULE:
 - NEVER mix languages unless user mixes them first
 
 Keep responses short, friendly and under 3 sentences.
-Always call the user Krishna.
+Always call the user by their name provided in the message context.
 """
 
 conversation_history = []
@@ -79,8 +79,8 @@ def chat_with_mawa(user_message, language="english"):
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {"role": "system", "content": SYSTEM_PROMPT}
-        ] + conversation_history
+        {"role": "system", "content": SYSTEM_PROMPT + f"\nCurrent user name: {user_name}. Always call them {user_name}."}
+    ] + conversation_history
     )
 
     reply = response.choices[0].message.content
@@ -90,7 +90,7 @@ def chat_with_mawa(user_message, language="english"):
     })
     return reply
 
-def handle_message(user_message, language="english"):
+def handle_message(user_message, language="english", user_name="Friend"):
     intent = detect_intent(user_message)
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST)
@@ -306,7 +306,8 @@ def chat():
     data = request.json
     message = data.get('message', '')
     language = data.get('language', 'english')
-    response = handle_message(message, language)
+    user_name = data.get('user_name', 'Friend')
+    response = handle_message(message, language, user_name)
     return jsonify({"response": response, "intent": detect_intent(message)})
 
 @app.route('/api/tasks', methods=['GET'])

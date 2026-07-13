@@ -104,7 +104,8 @@ export default function App() {
   const [dark, setDark] = useState(true);
   const [tab, setTab] = useState("home");
   const loggedInName = localStorage.getItem('mawa_name') || 'Friend';
-  const [messages, setMessages] = useState([
+  const savedMessages = JSON.parse(localStorage.getItem(`mawa_chat_${localStorage.getItem('mawa_user_id')}`) || 'null');
+  const [messages, setMessages] = useState(savedMessages || [
     { from: "mawa", text: `Namaste ${loggedInName}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }
   ]);
   const [chatInput, setChatInput] = useState("");
@@ -263,7 +264,11 @@ export default function App() {
 
   const sendMessage = useCallback(async (text) => {
     if (!text.trim()) return;
-    setMessages(prev => [...prev, { from: "user", text }]);
+    setMessages(prev => {
+      const updated = [...prev, { from: "user", text }];
+      localStorage.setItem(`mawa_chat_${localStorage.getItem('mawa_user_id')}`, JSON.stringify(updated.slice(-50)));
+      return updated;
+    });
     setChatInput("");
     setLoading(true);
     try {
@@ -273,7 +278,11 @@ export default function App() {
       const hindiChars = [...text].filter(c => c >= '\u0900' && c <= '\u097F').length;
       const detectedLang = (hindiCount >= 1 || hindiChars > 0) ? "hindi" : "english";
 
-      const res = await axios.post(`${API}/chat`, { message: text, language: detectedLang });
+      const res = await axios.post(`${API}/chat`, { 
+        message: text, 
+        language: detectedLang,
+        user_name: localStorage.getItem('mawa_name') || 'Friend'
+      });
       const responseData = res.data.response;
       let reply = "";
       console.log("Response data:", responseData);
@@ -300,7 +309,11 @@ export default function App() {
       }
   
 
-      setMessages(prev => [...prev, { from: "mawa", text: reply }]);
+      setMessages(prev => {
+        const updated = [...prev, { from: "mawa", text: reply }];
+        localStorage.setItem(`mawa_chat_${localStorage.getItem('mawa_user_id')}`, JSON.stringify(updated.slice(-50)));
+        return updated;
+      });
       speakText(reply);
       fetchAll();
     } catch {
@@ -758,7 +771,10 @@ const MusicPlayer = () => (
                 {dark ? "☀️" : "🌙"}
               </button>
             )}
-            <button onClick={async () => { await fetchAll(); }} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
+            <button onClick={async () => { 
+              await fetchAll(); 
+              alert('Refreshed! ✅');
+            }} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
             <button onClick={handleLogout} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🚪</button>
           </div>
         </div>
