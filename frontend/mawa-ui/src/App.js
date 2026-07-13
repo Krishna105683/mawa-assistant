@@ -143,11 +143,13 @@ export default function App() {
       if (res.data.success) {
         localStorage.setItem('mawa_token', res.data.token);
         localStorage.setItem('mawa_name', res.data.name);
+        localStorage.setItem('mawa_email', authForm.email);
         localStorage.setItem('mawa_user_id', res.data.user_id);
         setUserId(res.data.user_id);
         localStorage.removeItem('mawa_name', res.data.name);
-        setIsLoggedIn(true); 
         setIsLoggedIn(true);
+        setIsLoggedIn(true);
+        setMessages([{ from: "mawa", text: `Namaste ${res.data.name}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }]); 
       } else {
         setAuthError(res.data.error);
       }
@@ -168,10 +170,13 @@ export default function App() {
       if (res.data.success) {
         localStorage.setItem('mawa_token', res.data.token);
         localStorage.setItem('mawa_name', res.data.name);
+        localStorage.setItem('mawa_email', authForm.email);
         localStorage.setItem('mawa_user_id', res.data.user_id);
         setUserId(res.data.user_id);
         localStorage.removeItem('mawa_name', res.data.name);
         setIsLoggedIn(true);
+        setIsLoggedIn(true);
+        setMessages([{ from: "mawa", text: `Namaste ${res.data.name}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }]);
       } else {
         setAuthError(res.data.error);
       }
@@ -361,6 +366,7 @@ export default function App() {
     { id: "habits", emoji: "🌟", label: "Habits" },
     { id: "routine", emoji: "🔄", label: "Routine" },
     { id: "news", emoji: "📰", label: "News" },
+    { id: "profile", emoji: "👤", label: "Profile" },
   ];
 
   const HomeView = () => (
@@ -465,7 +471,105 @@ export default function App() {
     </div>
   );
 
-  const tabViews = { home: <HomeView />, tasks: <TasksView />, habits: <HabitsView />, routine: <RoutineView />, news: <NewsView /> };
+  const ProfileView = () => (
+    <div>
+      <div style={s.card}>
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px", margin: "0 auto 16px" }}>
+            {(localStorage.getItem('mawa_name') || 'U')[0].toUpperCase()}
+          </div>
+          <div style={{ fontSize: "20px", fontWeight: "700", color: c.text }}>{localStorage.getItem('mawa_name') || 'User'}</div>
+          <div style={{ fontSize: "13px", color: c.sub, marginTop: "4px" }}>{localStorage.getItem('mawa_email') || ''}</div>
+        </div>
+      </div>
+
+      <div style={s.card}>
+        <div style={s.cardTitle}>👤 Profile Info</div>
+        <div style={s.row}>
+          <span>📛</span>
+          <div>
+            <div style={{ fontSize: "12px", color: c.sub }}>Name</div>
+            <div style={{ fontSize: "14px" }}>{localStorage.getItem('mawa_name') || 'User'}</div>
+          </div>
+        </div>
+        <div style={s.row}>
+          <span>📧</span>
+          <div>
+            <div style={{ fontSize: "12px", color: c.sub }}>Email</div>
+            <div style={{ fontSize: "14px" }}>{localStorage.getItem('mawa_email') || 'Not set'}</div>
+          </div>
+        </div>
+        <div style={s.row}>
+          <span>📍</span>
+          <div>
+            <div style={{ fontSize: "12px", color: c.sub }}>Location</div>
+            <div style={{ fontSize: "14px" }}>{userLocation.city}</div>
+          </div>
+        </div>
+        <div style={s.row}>
+          <span>🌍</span>
+          <div>
+            <div style={{ fontSize: "12px", color: c.sub }}>Language</div>
+            <div style={{ fontSize: "14px" }}>Hindi + English</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={s.card}>
+        <div style={s.cardTitle}>📊 My Stats</div>
+        <div style={s.row}>
+          <span>📋</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "13px" }}>Pending Tasks</div>
+          </div>
+          <span style={{ fontSize: "18px", fontWeight: "700", color: c.accent }}>{tasks.length}</span>
+        </div>
+        <div style={s.row}>
+          <span>🌟</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "13px" }}>Today's Habits</div>
+          </div>
+          <span style={{ fontSize: "18px", fontWeight: "700", color: c.accent }}>{habits.length}</span>
+        </div>
+        <div style={s.row}>
+          <span>⏰</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "13px" }}>Active Reminders</div>
+          </div>
+          <span style={{ fontSize: "18px", fontWeight: "700", color: c.accent }}>{reminders.length}</span>
+        </div>
+        <div style={s.row}>
+          <span>🔄</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "13px" }}>Routine Activities</div>
+          </div>
+          <span style={{ fontSize: "18px", fontWeight: "700", color: c.accent }}>{routine.length}</span>
+        </div>
+      </div>
+
+      <div style={s.card}>
+        <div style={s.cardTitle}>⚙️ Settings</div>
+        <div style={s.row}>
+          <span>{dark ? "🌙" : "☀️"}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "13px" }}>Dark Mode</div>
+          </div>
+          <div onClick={() => setDark(!dark)} style={{ width: "38px", height: "20px", borderRadius: "10px", background: dark ? c.accent : "#ccc", cursor: "pointer", position: "relative" }}>
+            <div style={{ width: "14px", height: "14px", borderRadius: "50%", background: "white", position: "absolute", top: "3px", left: dark ? "21px" : "3px", transition: "left 0.2s" }} />
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={handleLogout}
+        style={{ width: "100%", padding: "14px", borderRadius: "12px", background: "#ef4444", color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "15px", marginTop: "8px" }}
+      >
+        🚪 Logout
+      </button>
+    </div>
+  );
+
+  const tabViews = { home: <HomeView />, tasks: <TasksView />, habits: <HabitsView />, routine: <RoutineView />, news: <NewsView />, profile: <ProfileView /> };
 
   const SidebarContent = () => (
     <>
@@ -654,7 +758,7 @@ const MusicPlayer = () => (
                 {dark ? "☀️" : "🌙"}
               </button>
             )}
-            <button onClick={() => fetchAll()} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
+            <button onClick={async () => { await fetchAll(); }} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
             <button onClick={handleLogout} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🚪</button>
           </div>
         </div>
