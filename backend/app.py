@@ -45,7 +45,7 @@ Keep responses short, friendly and under 3 sentences.
 Always call the user by their name provided in the message context.
 """
 
-conversation_history = []
+conversation_history = {}
 
 def extract_time(message):
     time_pattern = r'(at\s+\d{1,2}(?::\d{2})?\s*(?:AM|PM|am|pm)?|(?:in|after)\s+\d+\s+\w+)'
@@ -65,44 +65,58 @@ def extract_task(message, time_raw):
         task = task.replace(time_raw, "").strip()
     return task.strip()
 
-def chat_with_mawa(user_message, language="english", user_name="Friend"):
+def chat_with_mawa(user_message, language="english", user_name="Friend", user_id=0):
+    global conversation_histories
+    
+    # Get or create conversation history for this user
+    if user_id not in conversation_histories:
+        conversation_histories[user_id] = []
+    
+    user_history = conversation_histories[user_id]
+    
     if language == "hindi":
-        lang_instruction = "IMPORTANT: Respond in Hindi/Hinglish ONLY."
+        lang_instruction = f"IMPORTANT: Respond in Hindi/Hinglish ONLY. User's name is {user_name}."
     else:
-        lang_instruction = "IMPORTANT: Respond in English ONLY."
+        lang_instruction = f"IMPORTANT: Respond in English ONLY. User's name is {user_name}. Always call them {user_name}."
 
-    conversation_history.append({
+    user_history.append({
         "role": "user",
         "content": f"{lang_instruction}\nUser: {user_message}"
     })
 
+    # Keep only last 20 messages to avoid token limit
+    if len(user_history) > 20:
+        user_history = user_history[-20:]
+        conversation_histories[user_id] = user_history
+
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-        {"role": "system", "content": SYSTEM_PROMPT + f"\nCurrent user name: {user_name}. Always call them {user_name}."}
-    ] + conversation_history
+            {"role": "system", "content": SYSTEM_PROMPT + f"\nCurrent user: {user_name}. ALWAYS call them {user_name}. Never call them Krishna unless their name is Krishna."}
+        ] + user_history
     )
 
     reply = response.choices[0].message.content
-    conversation_history.append({
+    user_history.append({
         "role": "assistant",
         "content": reply
     })
+    conversation_histories[user_id] = user_history
     return reply
 
-def handle_message(user_message, language="english", user_name="Friend"):
+def handle_message(user_message, language="english", user_name="Friend", user_id=0):
     intent = detect_intent(user_message)
     IST = pytz.timezone('Asia/Kolkata')
     now = datetime.now(IST)
     if intent == "get_time":
         if language == "hindi":
-            return f"Krishna, abhi {now.strftime('%I:%M %p')} baj rahe hain!"
-        return f"The current time is {now.strftime('%I:%M %p')} Krishna!"
+            return f"{user_name}, abhi {now.strftime('%I:%M %p')} baj rahe hain!"
+        return f"The current time is {now.strftime('%I:%M %p')} {user_name}!"
 
     elif intent == "get_date":
         if language == "hindi":
-            return f"Krishna, aaj {now.strftime('%A, %d %B %Y')} hai!"
-        return f"Today is {now.strftime('%A, %B %d, %Y')} Krishna!"
+            return f"{user_name}, aaj {now.strftime('%A, %d %B %Y')} hai!"
+        return f"Today is {now.strftime('%A, %B %d, %Y')} {user_name}!"
 
     elif intent == "add_task":
         time_str, time_raw = extract_time(user_message)
@@ -110,9 +124,9 @@ def handle_message(user_message, language="english", user_name="Friend"):
         if task:
             add_task(task, time_str)
             if language == "hindi":
-                return f"Krishna, '{task}' task add ho gaya!"
-            return f"Got it Krishna! '{task}' added to your task list!"
-        return "What task would you like to add Krishna?"
+                return f"{user_name}, '{task}' task add ho gaya!"
+            return f"Got it {user_name}! '{task}' added to your task list!"
+        return f"What task would you like to add {user_name}?"
 
     elif intent == "show_tasks":
         tasks = get_tasks()
@@ -120,15 +134,15 @@ def handle_message(user_message, language="english", user_name="Friend"):
             task_list = [{"id": t[0], "task": t[1], "time": t[2]} for t in tasks]
             return {"type": "tasks", "data": task_list, "language": language}
         if language == "hindi":
-            return "Krishna, abhi koi pending task nahi hai!"
-        return "You have no pending tasks Krishna!"
+            return f"{user_name}, abhi koi pending task nahi hai!"
+        return f"You have no pending tasks {user_name}!"
 
     elif intent == "complete_task":
         numbers = re.findall(r'\d+', user_message)
         if numbers:
             complete_task(int(numbers[0]))
-            return f"Task {numbers[0]} completed Krishna! ✅"
-        return "Which task number Krishna?"
+            return f"Task {numbers[0]} completed {user_name}! ✅"
+        return f"Which task number {user_name}?"
 
     elif intent == "set_reminder":
         time_match = re.search(
@@ -148,15 +162,15 @@ def handle_message(user_message, language="english", user_name="Friend"):
             title = title.replace(raw_time, "").strip()
             remind_at = set_reminder(title, time_str)
             if remind_at:
-                return f"Reminder set for '{title}' at {remind_at} Krishna!"
-        return "Please tell me what and when to remind you Krishna!"
+                return f"Reminder set for '{title}' at {remind_at} {user_name}!"
+        return f"Please tell me what and when to remind you {user_name}!"
 
     elif intent == "show_reminders":
         reminders = get_reminders()
         if reminders:
             reminder_list = [{"id": r[0], "title": r[1], "time": r[2]} for r in reminders]
             return {"type": "reminders", "data": reminder_list}
-        return "No reminders set Krishna!"
+        return f"No reminders set yet {user_name}!"
 
     elif intent == "get_weather":
         return get_weather()
@@ -170,15 +184,15 @@ def handle_message(user_message, language="english", user_name="Friend"):
             habit = habit.replace(word, "").strip()
         if habit:
             add_habit(habit)
-            return f"Habit '{habit}' added Krishna!"
-        return "What habit would you like to track Krishna?"
+            return f"Habit '{habit}' added {user_name}!"
+        return f"What habit would you like to track {user_name}?"
 
     elif intent == "show_habits":
         habits = get_today_habits()
         if habits:
             habit_list = [{"id": h[0], "name": h[1], "done": h[2]} for h in habits]
             return {"type": "habits", "data": habit_list}
-        return "No habits tracked yet Krishna!"
+        return f"No habits tracked yet {user_name}!"
     elif intent == "add_routine":
         import re
         message_lower = user_message.lower()
@@ -197,18 +211,18 @@ def handle_message(user_message, language="english", user_name="Friend"):
             if activity and time_str:
                 add_routine_activity(activity, time_str)
                 if language == "hindi":
-                    return f"Krishna, '{activity}' {time_str} ko aapke daily routine mein add ho gaya!"
-                return f"Got it Krishna! '{activity}' at {time_str} added to your daily routine!"
+                    return f"{user_name}, '{activity}' {time_str} ko aapke daily routine mein add ho gaya!"
+                return f"Got it {user_name}! '{activity}' at {time_str} added to your daily routine!"
 
         if language == "hindi":
-            return "Krishna, activity aur time batao! Jaise: 'add routine exercise at 6:00 AM'"
-        return "Please tell me the activity and time! Example: 'add routine meditation at 7:00 AM'"
+            return f"{user_name}, activity aur time batao! Jaise: 'add routine exercise at 6:00 AM'"
+        return f"Please tell me the activity and time {user_name}! Example: 'add routine meditation at 7:00 AM'"
     elif intent == "show_routine":
         routine = get_daily_routine()
         if routine:
             routine_list = [{"id": r[0], "activity": r[1], "time": r[2]} for r in routine]
             return {"type": "routine", "data": routine_list}
-        return "No routine set yet Krishna!"
+        return f"No routine set yet {user_name}!"
 
     elif intent == "weekly_review":
         return get_weekly_review()
@@ -224,13 +238,13 @@ def handle_message(user_message, language="english", user_name="Friend"):
         if music_query:
             spotify_url = f"https://open.spotify.com/search/{music_query.replace(' ', '%20')}"
             if language == "hindi":
-                return f"Krishna, '{music_query}' Spotify pe search kar raha hoon! Link: {spotify_url}"
-            return f"Searching '{music_query}' on Spotify Krishna! Link: {spotify_url}"
+                return f"{user_name}, '{music_query}' Spotify pe search kar raha hoon! Link: {spotify_url}"
+            return f"Searching '{music_query}' on Spotify {user_name}! Link: {spotify_url}"
         else:
             spotify_url = "https://open.spotify.com"
             if language == "hindi":
-                return f"Krishna, Spotify khol raha hoon! Link: {spotify_url}"
-            return f"Opening Spotify for you Krishna! Link: {spotify_url}"
+                return f"{user_name}, Spotify khol raha hoon! Link: {spotify_url}"
+            return f"Opening Spotify for you {user_name}! Link: {spotify_url}"
 
     elif intent == "play_jiosaavn":
         music_query = user_message.lower()
@@ -240,10 +254,10 @@ def handle_message(user_message, language="english", user_name="Friend"):
         if music_query:
             url = f"https://www.jiosaavn.com/search/{music_query.replace(' ', '%20')}"
             if language == "hindi":
-                return f"Krishna, '{music_query}' JioSaavn pe search kar raha hoon! Link: {url}"
-            return f"Searching '{music_query}' on JioSaavn Krishna! Link: {url}"
+                return f"{user_name}, '{music_query}' JioSaavn pe search kar raha hoon! Link: {url}"
+            return f"Searching '{music_query}' on JioSaavn {user_name}! Link: {url}"
         else:
-            return f"Opening JioSaavn for you Krishna! Link: https://www.jiosaavn.com"
+            return f"Opening JioSaavn for you {user_name}! Link: https://www.jiosaavn.com"
 
     elif intent == "play_gaana":
         music_query = user_message.lower()
@@ -253,10 +267,10 @@ def handle_message(user_message, language="english", user_name="Friend"):
         if music_query:
             url = f"https://gaana.com/search/track/{music_query.replace(' ', '%20')}"
             if language == "hindi":
-                return f"Krishna, '{music_query}' Gaana pe search kar raha hoon! Link: {url}"
-            return f"Searching '{music_query}' on Gaana Krishna! Link: {url}"
+                return f"{user_name}, '{music_query}' Gaana pe search kar raha hoon! Link: {url}"
+            return f"Searching '{music_query}' on Gaana {user_name}! Link: {url}"
         else:
-            return f"Opening Gaana for you Krishna! Link: https://gaana.com"
+            return f"Opening Gaana for you {user_name}! Link: https://gaana.com"
 
     elif intent == "play_music":
         music_query = user_message.lower()
@@ -273,8 +287,8 @@ def handle_message(user_message, language="english", user_name="Friend"):
             else:
                 youtube_url = f"https://www.youtube.com/results?search_query={music_query.replace(' ', '+')}"
                 if language == "hindi":
-                    return f"Krishna, JioSaavn pe nahi mila! YouTube try karo: {youtube_url}"
-                return f"Couldn't find on JioSaavn! Try YouTube Krishna: {youtube_url}"
+                    return f"{user_name}, JioSaavn pe nahi mila! YouTube try karo: {youtube_url}"
+                return f"Couldn't find on JioSaavn! Try YouTube {user_name}: {youtube_url}"
         else:
             if language == "hindi":
                 return "Krishna, kaunsa gaana bajana hai? Batao!"
@@ -297,7 +311,7 @@ def handle_message(user_message, language="english", user_name="Friend"):
                 return "Good evening Krishna! How can I help?"
 
     else:
-        return chat_with_mawa(user_message, language, user_name)
+        return chat_with_mawa(user_message, language, user_name, user_id)
 
 # ─── API ROUTES ───────────────────────────────────────
 
@@ -307,7 +321,8 @@ def chat():
     message = data.get('message', '')
     language = data.get('language', 'english')
     user_name = data.get('user_name', 'Friend')
-    response = handle_message(message, language, user_name)
+    user_id = data.get('user_id', 0)
+    response = handle_message(message, language, user_name, user_id)
     return jsonify({"response": response, "intent": detect_intent(message)})
 
 @app.route('/api/tasks', methods=['GET'])

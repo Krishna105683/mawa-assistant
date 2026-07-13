@@ -281,8 +281,10 @@ export default function App() {
       const res = await axios.post(`${API}/chat`, { 
         message: text, 
         language: detectedLang,
-        user_name: localStorage.getItem('mawa_name') || 'Friend'
+        user_name: localStorage.getItem('mawa_name') || 'Friend',
+        user_id: localStorage.getItem('mawa_user_id') || 0
       });
+      
       const responseData = res.data.response;
       let reply = "";
       console.log("Response data:", responseData);
