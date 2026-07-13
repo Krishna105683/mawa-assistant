@@ -65,7 +65,7 @@ def extract_task(message, time_raw):
         task = task.replace(time_raw, "").strip()
     return task.strip()
 
-def chat_with_mawa(user_message, language="english"):
+def chat_with_mawa(user_message, language="english", user_name="Friend"):
     if language == "hindi":
         lang_instruction = "IMPORTANT: Respond in Hindi/Hinglish ONLY."
     else:
@@ -297,7 +297,7 @@ def handle_message(user_message, language="english", user_name="Friend"):
                 return "Good evening Krishna! How can I help?"
 
     else:
-        return chat_with_mawa(user_message, language)
+        return chat_with_mawa(user_message, language, user_name)
 
 # ─── API ROUTES ───────────────────────────────────────
 
