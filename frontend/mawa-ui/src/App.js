@@ -489,9 +489,9 @@ export default function App() {
       <div style={s.card}>
         <div style={{ textAlign: "center", padding: "20px 0" }}>
           <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px", margin: "0 auto 16px" }}>
-            {(localStorage.getItem('mawa_name') || 'U')[0].toUpperCase()}
+            {(localStorage.getItem('mawa_name') || loggedInName || 'U')[0].toUpperCase()}
           </div>
-          <div style={{ fontSize: "20px", fontWeight: "700", color: c.text }}>{localStorage.getItem('mawa_name') || 'User'}</div>
+          <div style={{ fontSize: "20px", fontWeight: "700", color: c.text }}>{localStorage.getItem('mawa_name') || loggedInName || 'User'}</div>
           <div style={{ fontSize: "13px", color: c.sub, marginTop: "4px" }}>{localStorage.getItem('mawa_email') || ''}</div>
         </div>
       </div>
@@ -502,7 +502,7 @@ export default function App() {
           <span>📛</span>
           <div>
             <div style={{ fontSize: "12px", color: c.sub }}>Name</div>
-            <div style={{ fontSize: "14px" }}>{localStorage.getItem('mawa_name') || 'User'}</div>
+            <div style={{ fontSize: "14px" }}>{localStorage.getItem('mawa_name') || loggedInName || 'User'}</div>
           </div>
         </div>
         <div style={s.row}>
