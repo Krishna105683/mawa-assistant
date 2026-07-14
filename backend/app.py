@@ -299,16 +299,16 @@ def handle_message(user_message, language="english", user_name="Friend", user_id
             if hour < 12:
                 return f"Suprabhat {user_name}! Main Mawa hoon, kya madad kar sakti hoon?"
             elif hour < 17:
-                return "Namaskar {user_name}! Kya kaam hai?"
+                return f"Namaskar {user_name}! Kya kaam hai?"
             else:
-                return "Shubh Sandhya {user_name}! Kya madad chahiye?"
+                return f"Shubh Sandhya {user_name}! Kya madad chahiye?"
         else:
             if hour < 12:
-                return "Good morning {user_name}! How can I help you?"
+                return f"Good morning {user_name}! How can I help you?"
             elif hour < 17:
-                return "Good afternoon {user_name}! What can I do for you?"
+                return f"Good afternoon {user_name}! What can I do for you?"
             else:
-                return "Good evening {user_name}! How can I help?"
+                return f"Good evening {user_name}! How can I help?"
 
     else:
         return chat_with_mawa(user_message, language, user_name, user_id)
