@@ -6,11 +6,14 @@ const API = process.env.REACT_APP_API_URL || "http://127.0.0.1:5000/api";
 // Auth Form Component (outside App to prevent re-renders)
 const AuthInput = ({ label, type, placeholder, defaultValue, onBlur, onKeyDown }) => {
   const [val, setVal] = React.useState(defaultValue || '');
+  const [showPass, setShowPass] = React.useState(false);
+  const isPassword = type === 'password';
   return (
     <div style={{ marginBottom: "16px" }}>
       <label style={{ fontSize: "13px", color: "#8888aa", marginBottom: "6px", display: "block" }}>{label}</label>
+      <div style={{ position: "relative" }}>
       <input
-        type={type || "text"}
+        type={isPassword ? (showPass ? "text" : "password") : (type || "text")}
         style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #1e1e3f", background: "#080814", color: "#e8e8ff", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
         placeholder={placeholder}
         value={val}
@@ -19,7 +22,18 @@ const AuthInput = ({ label, type, placeholder, defaultValue, onBlur, onKeyDown }
         onKeyDown={onKeyDown}
         autoComplete="off"
         spellCheck="false"
+        style={{ width: "100%", padding: "12px", paddingRight: isPassword ? "44px" : "12px", borderRadius: "10px", border: "1px solid #1e1e3f", background: "#080814", color: "#e8e8ff", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
       />
+      {isPassword && (
+        <button
+          type="button"
+          onClick={() => setShowPass(!showPass)}
+          style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", fontSize: "16px", color: "#8888aa" }}
+        >
+          {showPass ? "🙈" : "👁️"}
+        </button>
+      )}
+      </div>
     </div>
   );
 };
@@ -669,6 +683,27 @@ const AuthPage = () => (
             style={{ width: "100%", padding: "14px", borderRadius: "10px", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "15px" }}
           >
             {authLoading ? "Please wait..." : authMode === 'login' ? "Login to Mawa" : "Create Account"}
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "16px 0" }}>
+            <div style={{ flex: 1, height: "1px", background: c.border }} />
+            <span style={{ fontSize: "12px", color: c.sub }}>OR</span>
+            <div style={{ flex: 1, height: "1px", background: c.border }} />
+          </div>
+
+          <button
+            onClick={() => window.location.href = `${API}/auth/google`}
+            style={{ width: "100%", padding: "12px", borderRadius: "10px", background: "white", color: "#333", border: "1px solid #ddd", cursor: "pointer", fontWeight: "600", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}
+          >
+            <img src="https://www.google.com/favicon.ico" alt="Google" style={{ width: "18px", height: "18px" }} />
+            Continue with Google
+          </button>
+
+          <button
+            onClick={() => alert('Phone login coming soon!')}
+            style={{ width: "100%", padding: "12px", borderRadius: "10px", background: "transparent", color: c.text, border: `1px solid ${c.border}`, cursor: "pointer", fontWeight: "600", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginTop: "10px" }}
+          >
+            📱 Continue with Phone
           </button>
 
           <div style={{ textAlign: "center", marginTop: "16px", fontSize: "13px", color: c.sub }}>
