@@ -147,7 +147,7 @@ export default function App() {
         localStorage.setItem('mawa_email', authForm.email);
         localStorage.setItem('mawa_user_id', res.data.user_id);
         setUserId(res.data.user_id);
-        localStorage.removeItem('mawa_name', res.data.name);
+        localStorage.setItem('mawa_name', res.data.name);
         setIsLoggedIn(true);
         setIsLoggedIn(true);
         setMessages([{ from: "mawa", text: `Namaste ${res.data.name}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }]); 
@@ -174,7 +174,7 @@ export default function App() {
         localStorage.setItem('mawa_email', authForm.email);
         localStorage.setItem('mawa_user_id', res.data.user_id);
         setUserId(res.data.user_id);
-        localStorage.removeItem('mawa_name', res.data.name);
+        localStorage.setItem('mawa_name', res.data.name);
         setIsLoggedIn(true);
         setIsLoggedIn(true);
         setMessages([{ from: "mawa", text: `Namaste ${res.data.name}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }]);
