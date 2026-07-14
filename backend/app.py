@@ -291,24 +291,24 @@ def handle_message(user_message, language="english", user_name="Friend", user_id
                 return f"Couldn't find on JioSaavn! Try YouTube {user_name}: {youtube_url}"
         else:
             if language == "hindi":
-                return "Krishna, kaunsa gaana bajana hai? Batao!"
-            return "What song would you like to play Krishna?"
+                return f"{user_name}, kaunsa gaana bajana hai? Batao!"
+            return f"What song would you like to play {user_name}?"
     elif intent == "greeting":
         hour = now.hour
         if language == "hindi":
             if hour < 12:
-                return "Suprabhat Krishna! Main Mawa hoon, kya madad kar sakti hoon?"
+                return f"Suprabhat {user_name}! Main Mawa hoon, kya madad kar sakti hoon?"
             elif hour < 17:
-                return "Namaskar Krishna! Kya kaam hai?"
+                return "Namaskar {user_name}! Kya kaam hai?"
             else:
-                return "Shubh Sandhya Krishna! Kya madad chahiye?"
+                return "Shubh Sandhya {user_name}! Kya madad chahiye?"
         else:
             if hour < 12:
-                return "Good morning Krishna! How can I help you?"
+                return "Good morning {user_name}! How can I help you?"
             elif hour < 17:
-                return "Good afternoon Krishna! What can I do for you?"
+                return "Good afternoon {user_name}! What can I do for you?"
             else:
-                return "Good evening Krishna! How can I help?"
+                return "Good evening {user_name}! How can I help?"
 
     else:
         return chat_with_mawa(user_message, language, user_name, user_id)
