@@ -36,14 +36,14 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_task(task, due_time=None):
+def add_task(task, due_time=None, user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("INSERT INTO tasks (task, due_time) VALUES (?, ?)", (task, due_time))
     conn.commit()
     conn.close()
 
-def get_tasks():
+def get_tasks(user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT id, task, due_time, done FROM tasks WHERE done = 0 ORDER BY created_at DESC")
@@ -51,28 +51,28 @@ def get_tasks():
     conn.close()
     return tasks
 
-def complete_task(task_id):
+def complete_task(task_id, user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("UPDATE tasks SET done = 1 WHERE id = ?", (task_id,))
     conn.commit()
     conn.close()
 
-def delete_task(task_id):
+def delete_task(task_id, user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
     conn.commit()
     conn.close()
 
-def add_reminder(title, remind_at):
+def add_reminder(title, remind_at, user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("INSERT INTO reminders (title, remind_at) VALUES (?, ?)", (title, remind_at))
     conn.commit()
     conn.close()
 
-def get_reminders():
+def get_reminders(user_id=0):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT id, title, remind_at, done FROM reminders WHERE done = 0 ORDER BY remind_at ASC")
