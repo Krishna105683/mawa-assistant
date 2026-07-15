@@ -332,7 +332,7 @@ export default function App() {
       speakText(reply);
       fetchAll();
     } catch {
-      setMessages(prev => [...prev, { from: "mawa", text: "Sorry Krishna, something went wrong!" }]);
+      setMessages(prev => [...prev, { from: "mawa", text: `Sorry ${localStorage.getItem('mawa_name') || 'Friend'}, something went wrong!` }]);
     }
     setLoading(false);
   }, [fetchAll]);
