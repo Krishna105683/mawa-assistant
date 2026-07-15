@@ -14,7 +14,6 @@ const AuthInput = ({ label, type, placeholder, defaultValue, onBlur, onKeyDown }
       <div style={{ position: "relative" }}>
       <input
         type={isPassword ? (showPass ? "text" : "password") : (type || "text")}
-        style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid #1e1e3f", background: "#080814", color: "#e8e8ff", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
         placeholder={placeholder}
         value={val}
         onChange={e => setVal(e.target.value)}
