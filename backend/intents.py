@@ -22,7 +22,7 @@ def detect_intent(message):
                                            "add a task"]):
         return "add_task"
     
-    # Show tasks - must be BEFORE add_task
+    # Show tasks
     elif any(word in message for word in ["show task", "show tasks", "my task",
                                            "my tasks", "task list", "list task",
                                            "list tasks", "what are my task",
@@ -36,7 +36,50 @@ def detect_intent(message):
     elif any(word in message for word in ["complete task", "done task",
                                            "finish task", "mark task"]):
         return "complete_task"
-    
+
+    # Show routine - BEFORE add_routine
+    elif any(word in message for word in ["show routine", "my routine", "routine dikhao",
+                                           "aaj ka routine", "daily schedule",
+                                           "view routine", "see routine"]):
+        return "show_routine"
+
+    # Show habits - BEFORE add_habit
+    elif any(word in message for word in ["show habit", "show habits", "my habit",
+                                           "my habits", "habit list", "habits list",
+                                           "habits dikhao", "habit dikhao",
+                                           "view habits", "see habits"]):
+        return "show_habits"
+
+    # Complete habit
+    elif any(word in message for word in ["complete habit", "habit complete",
+                                           "done habit", "finish habit"]):
+        return "complete_habit"
+
+    # Add habit
+    elif any(word in message for word in ["add habit", "add habbit", "add habits",
+                                           "new habit", "track habit", "track habits",
+                                           "habit add", "habit banana"]):
+        return "add_habit"
+
+    # Add routine
+    elif any(word in message for word in ["add routine", "set routine",
+                                           "routine add", "routine set",
+                                           "add to routine", "routine me add",
+                                           "add meditation", "add wake", "add sleep",
+                                           "add breakfast", "add exercise", "add study",
+                                           "add lunch", "add dinner", "add workout"]):
+        return "add_routine"
+
+    # Weekly review
+    elif any(word in message for word in ["weekly review", "week review", "this week",
+                                           "hafte ka review", "week ka review"]):
+        return "weekly_review"
+
+    # Morning briefing
+    elif any(word in message for word in ["morning briefing", "daily briefing",
+                                           "aaj ka briefing", "briefing do"]):
+        return "morning_briefing"
+
     # Schedule
     elif any(word in message for word in ["schedule", "calendar",
                                            "events", "appointments"]):
@@ -72,44 +115,25 @@ def detect_intent(message):
                                            "date today", "day is it",
                                            "aaj kya", "aaj kon"]):
         return "get_date"
-    # Habit intents
-    elif any(word in message for word in ["add habit", "new habit", "track habit",
-                                           "habit add", "habit banana"]):
-        return "add_habit"
 
-    elif any(word in message for word in ["show habit", "my habit", "habit list",
-                                           "habits dikhao", "complete habit",
-                                           "habit complete"]):
-        return "show_habits"
-
-    # Routine intents
-    elif any(word in message for word in ["add routine", "set routine", "daily routine",
-                                           "routine add", "routine set",
-                                           "add to routine", "routine me add",
-                                           "add meditation", "add wake", "add sleep",
-                                           "add breakfast", "add exercise", "add study",
-                                           "add lunch", "add dinner", "add workout"]):
-        return "add_routine"
-
-    elif any(word in message for word in ["show routine", "my routine", "routine dikhao",
-                                           "aaj ka routine", "daily schedule"]):
-        return "show_routine"
-
-    # Weekly review
-    elif any(word in message for word in ["weekly review", "week review", "this week",
-                                           "hafte ka review", "week ka review"]):
-        return "weekly_review"
-
-    # Morning briefing
-    elif any(word in message for word in ["morning briefing", "daily briefing",
-                                           "aaj ka briefing", "briefing do"]):
-        return "morning_briefing"
-    # Spotify intents
+    # Spotify
     elif any(word in message for word in ["play on spotify", "spotify play",
                                            "spotify mein bajao", "open spotify",
                                            "spotify pe bajao", "spotify"]):
         return "play_spotify"
-    # Music intents
+
+    # JioSaavn
+    elif any(word in message for word in ["play on jiosaavn", "jiosaavn play",
+                                           "jiosaavn pe bajao", "saavn pe bajao",
+                                           "open jiosaavn", "jiosaavn"]):
+        return "play_jiosaavn"
+
+    # Gaana
+    elif any(word in message for word in ["play on gaana", "gaana play",
+                                           "gaana pe bajao", "open gaana"]):
+        return "play_gaana"
+
+    # Music
     elif any(word in message for word in ["play music", "play song", "play songs",
                                            "music play", "song play", "play",
                                            "gaana bajao", "music bajao", "song bajao",
