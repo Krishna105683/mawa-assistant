@@ -387,7 +387,7 @@ export default function App() {
     nav: (active) => ({ display: "flex", alignItems: "center", gap: "10px", padding: "11px 18px", margin: "2px 8px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: active ? "600" : "400", background: active ? `${c.accent}20` : "transparent", color: active ? c.accent : c.sub, transition: "all 0.15s" }),
   };
 
-  const navItems = [
+    const navItems = [
     { id: "home", emoji: "🏠", label: "Home" },
     { id: "chat", emoji: "💬", label: "Chat" },
     { id: "tasks", emoji: "📋", label: "Tasks" },
@@ -395,7 +395,7 @@ export default function App() {
     { id: "routine", emoji: "🔄", label: "Routine" },
     { id: "news", emoji: "📰", label: "News" },
     { id: "profile", emoji: "👤", label: "Profile" },
-  ];
+  ];  
 
   const HomeView = () => (
     <div>
