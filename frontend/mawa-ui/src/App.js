@@ -118,6 +118,13 @@ export default function App() {
   const [tab, setTab] = useState("home");
   const loggedInName = localStorage.getItem('mawa_name') || 'Friend';
   const savedMessages = JSON.parse(localStorage.getItem(`mawa_chat_${localStorage.getItem('mawa_user_id')}`) || 'null');
+    const [chatId, setChatId] = useState(() => Date.now().toString());
+  const [chatList, setChatList] = useState(() => {
+    const uid = localStorage.getItem('mawa_user_id') || '0';
+    const saved = localStorage.getItem(`mawa_chats_${uid}`);
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showChatList, setShowChatList] = useState(false);
   const [messages, setMessages] = useState(savedMessages || [
     { from: "mawa", text: `Namaste ${loggedInName}! Main Mawa hoon 🙏 Aaj main aapki kya madad kar sakti hoon?` }
   ]);
@@ -205,7 +212,46 @@ export default function App() {
     localStorage.removeItem('mawa_name');
     setIsLoggedIn(false);
   };
+    const saveChat = (msgs, id) => {
+    if (msgs.length <= 1) return;
+    const uid = localStorage.getItem('mawa_user_id') || '0';
+    const name = localStorage.getItem('mawa_name') || 'Friend';
+    const firstUserMsg = msgs.find(m => m.from === 'user');
+    const title = firstUserMsg ? firstUserMsg.text.slice(0, 40) : 'New Chat';
+    const existing = JSON.parse(localStorage.getItem(`mawa_chats_${uid}`) || '[]');
+    const updated = [
+      { id, title, messages: msgs, time: Date.now() },
+      ...existing.filter(c => c.id !== id)
+    ].slice(0, 20); // Keep last 20 chats
+    localStorage.setItem(`mawa_chats_${uid}`, JSON.stringify(updated));
+    setChatList(updated);
+  };
 
+  const startNewChat = () => {
+    const newId = Date.now().toString();
+    const name = localStorage.getItem('mawa_name') || 'Friend';
+    saveChat(messages, chatId);
+    setChatId(newId);
+    setMessages([{ from: 'mawa', text: `Namaste ${name}! Main Mawa hoon 🙏 Kya madad kar sakti hoon?` }]);
+    setShowChatList(false);
+  };
+
+  const loadChat = (chat) => {
+    saveChat(messages, chatId);
+    setChatId(chat.id);
+    setMessages(chat.messages);
+    setShowChatList(false);
+    setTab('chat');
+  };
+
+  const deleteChat = (id, e) => {
+    e.stopPropagation();
+    const uid = localStorage.getItem('mawa_user_id') || '0';
+    const updated = chatList.filter(c => c.id !== id);
+    localStorage.setItem(`mawa_chats_${uid}`, JSON.stringify(updated));
+    setChatList(updated);
+    if (id === chatId) startNewChat();
+  };
   const fetchAll = useCallback(async () => {
     try {
       // Fetch tasks, reminders, habits, routine first
@@ -277,9 +323,8 @@ export default function App() {
 
   const sendMessage = useCallback(async (text) => {
     if (!text.trim()) return;
-    setMessages(prev => {
+        setMessages(prev => {
       const updated = [...prev, { from: "user", text }];
-      localStorage.setItem(`mawa_chat_${localStorage.getItem('mawa_user_id')}`, JSON.stringify(updated.slice(-50)));
       return updated;
     });
     setChatInput("");
@@ -324,9 +369,9 @@ export default function App() {
       }
   
 
-      setMessages(prev => {
+            setMessages(prev => {
         const updated = [...prev, { from: "mawa", text: reply }];
-        localStorage.setItem(`mawa_chat_${localStorage.getItem('mawa_user_id')}`, JSON.stringify(updated.slice(-50)));
+        saveChat(updated, chatId);
         return updated;
       });
       speakText(reply);
@@ -720,7 +765,36 @@ const AuthPage = () => (
         </div>
       </div>
     </div>
-  );  
+  ); 
+  const ChatHistoryPanel = () => (
+    <div style={{ position: "fixed", top: 0, left: 0, bottom: 0, width: "280px", background: c.sidebar, borderRight: `1px solid ${c.border}`, zIndex: 500, display: "flex", flexDirection: "column", boxShadow: "4px 0 24px rgba(0,0,0,0.3)" }}>
+      <div style={{ padding: "16px", borderBottom: `1px solid ${c.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontWeight: "700", fontSize: "15px", color: c.text }}>💬 Chat History</span>
+        <button onClick={() => setShowChatList(false)} style={{ background: "transparent", border: "none", color: c.sub, cursor: "pointer", fontSize: "20px" }}>✕</button>
+      </div>
+
+      <button onClick={startNewChat} style={{ margin: "12px", padding: "10px", borderRadius: "10px", background: `linear-gradient(135deg, ${c.accent}, ${c.pink})`, color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "14px" }}>
+        ✏️ New Chat
+      </button>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
+        {chatList.length === 0 && (
+          <div style={{ fontSize: "13px", color: c.sub, textAlign: "center", marginTop: "20px" }}>No chat history yet!</div>
+        )}
+        {chatList.map(chat => (
+          <div key={chat.id} onClick={() => loadChat(chat)}
+            style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 12px", borderRadius: "10px", cursor: "pointer", background: chat.id === chatId ? `${c.accent}20` : "transparent", marginBottom: "4px", border: chat.id === chatId ? `1px solid ${c.accent}40` : "1px solid transparent" }}>
+            <span style={{ fontSize: "16px" }}>💬</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "13px", fontWeight: "500", color: c.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{chat.title}</div>
+              <div style={{ fontSize: "11px", color: c.sub }}>{new Date(chat.time).toLocaleDateString('en-IN')}</div>
+            </div>
+            <button onClick={(e) => deleteChat(chat.id, e)} style={{ background: "transparent", border: "none", color: c.sub, cursor: "pointer", fontSize: "14px", flexShrink: 0 }}>🗑️</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 const MusicPlayer = () => (
     <div>
       {showMusic && (
@@ -807,10 +881,13 @@ const MusicPlayer = () => (
                 {dark ? "☀️" : "🌙"}
               </button>
             )}
-            <button onClick={async () => { 
-              await fetchAll(); 
-              alert('Refreshed! ✅');
-            }} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
+                        {tab === 'chat' && (
+              <>
+                <button onClick={() => setShowChatList(!showChatList)} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>📋</button>
+                <button onClick={startNewChat} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>✏️</button>
+              </>
+            )}
+            <button onClick={async () => { await fetchAll(); }} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🔄</button>
             <button onClick={handleLogout} style={{ ...s.btn("transparent"), border: `1px solid ${c.border}`, color: c.sub }}>🚪</button>
           </div>
         </div>
@@ -876,7 +953,8 @@ const MusicPlayer = () => (
           ))}
         </div>
       )}
-    <MusicPlayer />
+          {showChatList && <ChatHistoryPanel />}
+      <MusicPlayer />
     </div>
   );
 }
