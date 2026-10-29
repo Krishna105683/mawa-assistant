@@ -352,20 +352,20 @@ export default function App() {
         reply = responseData;
       } else if (responseData?.type === "tasks") {
         const isHindi = responseData.language === "hindi";
-        reply = isHindi ? "Krishna, aapke tasks:\n" : "Here are your tasks Krishna:\n";
+        reply = isHindi ? "{user_name},, aapke tasks:\n" : "Here are your tasks {user_name},:\n";
         responseData.data.forEach(t => { reply += `• ${t.task}${t.time ? ` at ${t.time}` : ""}\n`; });
       } else if (responseData?.type === "reminders") {
-        reply = "Here are your reminders Krishna:\n";
+        reply = "Here are your reminders {user_name},:\n";
         responseData.data.forEach(r => { reply += `• ${r.title} at ${r.time}\n`; });
       } else if (responseData?.type === "habits") {
-        reply = "Here are your habits Krishna:\n";
+        reply = "Here are your habits {user_name},:\n";
         responseData.data.forEach(h => { reply += `• ${h.done ? "✅" : "⬜"} ${h.name}\n`; });
       } else if (responseData?.type === "routine") {
 } else if (responseData?.type === "music") {
         setCurrentSong(null);
         setMusicResults(responseData.data);
         setShowMusic(true);
-        reply = `Found ${responseData.data.length} songs Krishna! Check the music player below! 🎵`;
+        reply = `Found ${responseData.data.length} songs {user_name},! Check the music player below! 🎵`;
       }
   
 
