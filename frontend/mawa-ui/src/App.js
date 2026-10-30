@@ -215,7 +215,7 @@ export default function App() {
     const saveChat = (msgs, id) => {
     if (msgs.length <= 1) return;
     const uid = localStorage.getItem('mawa_user_id') || '0';
-    const name = localStorage.getItem('mawa_name') || 'Friend';
+    
     const firstUserMsg = msgs.find(m => m.from === 'user');
     const title = firstUserMsg ? firstUserMsg.text.slice(0, 40) : 'New Chat';
     const existing = JSON.parse(localStorage.getItem(`mawa_chats_${uid}`) || '[]');
@@ -380,7 +380,7 @@ export default function App() {
       setMessages(prev => [...prev, { from: "mawa", text: `Sorry ${localStorage.getItem('mawa_name') || 'Friend'}, something went wrong!` }]);
     }
     setLoading(false);
-  }, [fetchAll]);
+  }, [fetchAll,chatId]);
   
 
   const toggleListen = () => {
