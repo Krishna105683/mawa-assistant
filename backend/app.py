@@ -90,7 +90,7 @@ def chat_with_mawa(user_message, language="english", user_name="Friend", user_id
         conversation_histories[user_id] = user_history
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT + f"\nCurrent user: {user_name}. ALWAYS call them {user_name}. call them {user_name} in every response."}
         ] + user_history
