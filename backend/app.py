@@ -45,7 +45,7 @@ Keep responses short, friendly and under 3 sentences.
 Always call the user by their name provided in the message context.
 """
 
-conversation_history = {}
+conversation_histories = {}
 
 def extract_time(message):
     time_pattern = r'(at\s+\d{1,2}(?::\d{2})?\s*(?:AM|PM|am|pm)?|(?:in|after)\s+\d+\s+\w+)'
